@@ -5,7 +5,7 @@ DxQSO provides a unified view of all logbooks from different sources as well as 
 
 The DX-TQSL Windows/Mac application (replaces TQSL and provides cloud based backup and certificate management) provides QSO upload capability to DxQSO using existing logbook applications. DX-TQSL can upload to both DxQSO and LoTW simulatenously or only to DxQSO if the user is not an LoTW user.
 
-Users may upload their own ADIF logbooks through the DxQSO website, mobile application or DX-TQSL and maintain all detailed data. Logbook records are automaticlaly converted into target logbook application formats (N1MM, HRD, MacLogger, Polo, etc) when downloaded.
+Users may upload their own ADIF logbooks through the DxQSO website, mobile application or DX-TQSL and maintain all detailed data. Logbook records are automatically converted into target logbook application formats (N1MM, HRD, MacLogger, Polo, etc) when downloaded.
 
 The DxQSO mobile app provides real time access to your entire logbook, real time QSL alerts for confirmations and DXCC and other achievements and allows you to upload QSOs directly from your mobile via ADIF upload or through the N1MM listener.
 
