@@ -3,7 +3,7 @@ DxQSO is a ham radio cloud logbook repository which acts as a QSO clearinghouse 
 
 DxQSO provides a unified view of all logbooks from different sources as well as email and mobile QSL Alerts for new LOTW State, DXCC and Grid square confirmations. It also includes DxSocial, a social media site built for teams/clubs to share online information, blogs, file and real time operating activity and achievements. 
 
-The DX-TQSL Windows/Mac application (replaces TQSL and provides cloud based backup and certificate management) provides QSO uplaod capability to DxQSO using existing logbook applications. DX-TQSL can upload to both DxQSO and LoTW simulatenously or only to DxQSO if the user is not an LoTW user.
+The DX-TQSL Windows/Mac application (replaces TQSL and provides cloud based backup and certificate management) provides QSO upload capability to DxQSO using existing logbook applications. DX-TQSL can upload to both DxQSO and LoTW simulatenously or only to DxQSO if the user is not an LoTW user.
 
 Users may upload their own ADIF logbooks through the DxQSO website, mobile application or DX-TQSL and view detailed logbook information. Logbook records are automaticlaly converted into target logbook application formats (N1MM, HRD, MacLogger, Polo, etc) when downloaded.
 
