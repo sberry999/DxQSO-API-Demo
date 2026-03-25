@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DxQSO API Demo — Cloud QSO Repository</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/swift.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+  <!-- DataTables -->
+  <link  rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" />
+  <link  rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.colVis.min.js"></script>
+
+  <style>
+    :root {
+      --teal:        #2a7e7a;
+      --teal-dark:   #1f6460;
+      --teal-light:  #3a9e9a;
+      --teal-pale:   #e8f5f4;
+      --teal-bg:     rgba(42,126,122,.08);
+      --teal-border: rgba(42,126,122,.2);
+      --purple:      #160647;
+      --purple-mid:  #2d1580;
+      --purple-soft: #4a2faa;
+      --bg:          #f5f7fa;
+      --bg-white:    #ffffff;
+      --bg-card:     #ffffff;
+      --bg-card-2:   #f0f4f4;
+      --bg-input:    #ffffff;
+      --border:      #d5e4e3;
+      --border-hi:   #a8cece;
+      --green:       #16a34a;
+      --green-bg:    #f0fdf4;
+      --green-border:#bbf7d0;
+      --red:         #dc2626;
+      --red-bg:      #fef2f2;
+      --red-border:  #fecaca;
+      --amber:       #d97706;
+      --amber-bg:    #fffbeb;
+      --blue:        #0369a1;
+      --blue-bg:     #f0f9ff;
+      --text-1:      #160647;
+      --text-2:      #4a5568;
+      --text-3:      #9aa5b4;
+      --text-inv:    #ffffff;
+      --mono:        "Share Tech Mono", monospace;
+      --sans:        "DM Sans", system-ui, sans-serif;
+      --radius:      10px;
+      --radius-sm:   6px;
+      --transition:  0.16s ease;
+      --shadow-sm:   0 1px 3px rgba(22,6,71,.08), 0 1px 2px rgba(22,6,71,.06);
+      --shadow:      0 4px 12px rgba(22,6,71,.1), 0 1px 4px rgba(22,6,71,.06);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text-1); font-family: var(--sans); font-size: .9375rem; min-height: 100vh; }
+    a { color: var(--teal); }
+    a:hover { color: var(--teal-dark); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+    .site-nav { background: var(--teal); position: sticky; top: 0; z-index: 1000; padding: .75rem 0; box-shadow: 0 2px 8px rgba(22,6,71,.15); }
+    .nav-logo { text-decoration: none; display: flex; align-items: center; }
+    .nav-logo-img { height: 36px; width: auto; filter: brightness(0) invert(1); display: block; }
+    .hero-logo-img { height: 56px; width: auto; filter: brightness(0) invert(1); display: block; }
+    .footer-logo-img { height: 32px; width: auto; filter: brightness(0) invert(1); display: block; }
+    .nav-badge { font-size: .72rem; font-family: var(--mono); color: rgba(255,255,255,.75); background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); padding: .2rem .65rem; border-radius: 999px; letter-spacing: .05em; }
+    .btn-docs { font-size: .82rem; color: rgba(255,255,255,.85); text-decoration: none; border: 1px solid rgba(255,255,255,.3); padding: .35rem .85rem; border-radius: var(--radius-sm); transition: all var(--transition); font-family: var(--mono); background: rgba(255,255,255,.08); }
+    .btn-docs:hover { color: #fff; border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.18); text-decoration: none; }
+
+    .ticker-wrap { background: var(--teal-dark); border-bottom: 1px solid rgba(255,255,255,.1); padding: .3rem 0; overflow: hidden; white-space: nowrap; }
+    .ticker-inner { display: none; animation: ticker 32s linear infinite; font-family: var(--mono); font-size: .72rem; color: rgba(255,255,255,.8); padding-left: 100%; letter-spacing: .04em; }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+
+    .hero { background: var(--teal); position: relative; overflow: hidden; padding: 1.5rem 0 2rem; }
+    .hero-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 40px 40px; }
+    .hero-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 65%); top: -200px; right: -100px; pointer-events: none; }
+    .hero-glow-2 { position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(22,6,71,.12) 0%, transparent 65%); bottom: -80px; left: 60%; pointer-events: none; }
+    .hero h1 { font-size: clamp(1.9rem, 4.5vw, 3rem); font-weight: 700; line-height: 1.12; letter-spacing: -.02em; margin-bottom: 1rem; color: #fff; }
+    .hero h1 .hl { color: rgba(255,255,255,.85); }
+    .hero-sub { color: rgba(255,255,255,.8); font-size: 1rem; max-width: 580px; line-height: 1.65; margin-bottom: 1.75rem; }
+    .hero-chips .chip { display: inline-block; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); font-family: var(--mono); font-size: .73rem; color: rgba(255,255,255,.9); padding: .28rem .75rem; border-radius: 999px; margin: .2rem; }
+
+    .section-nav { position: sticky; top: 70px; }
+    .section-nav .nav-link { color: var(--text-3); font-size: .92rem; font-family: var(--mono); padding: .45rem .75rem; border-left: 2px solid var(--border); border-radius: 0; transition: all var(--transition); margin-bottom: 2px; }
+    .section-nav .nav-link:hover { color: var(--teal); border-left-color: var(--teal-light); }
+    .section-nav .nav-link.active { color: var(--teal); border-left-color: var(--teal); background: var(--teal-pale); font-weight: 600; }
+
+    .api-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), border-color var(--transition); }
+    .api-card:hover { box-shadow: var(--shadow); border-color: var(--border-hi); }
+    .card-step { display: inline-flex; align-items: center; justify-content: center; width: 2.2rem; height: 2.2rem; min-width: 2.2rem; background: var(--teal); border-radius: var(--radius-sm); font-family: var(--mono); font-size: .8rem; color: #fff; font-weight: 700; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: .15rem; color: var(--purple); }
+    .card-subtitle { font-size: .83rem; color: var(--text-2); }
+
+    .form-label { font-size: .82rem; font-weight: 600; color: var(--text-1); margin-bottom: .35rem; }
+    .form-label .required { color: var(--red); }
+    .form-hint { font-size: .73rem; color: var(--text-3); margin-top: .2rem; font-weight: 400; }
+    .form-hint a { color: var(--teal); font-size: .73rem; }
+    .form-control, .form-select { background: var(--bg-input) !important; border: 1px solid var(--border) !important; color: var(--text-1) !important; border-radius: var(--radius-sm) !important; font-size: .88rem !important; padding: .55rem .75rem !important; transition: border-color var(--transition), box-shadow var(--transition) !important; }
+    .form-control::placeholder { color: var(--text-3) !important; }
+    .form-control:focus, .form-select:focus { border-color: var(--teal) !important; box-shadow: 0 0 0 3px rgba(42,126,122,.15) !important; outline: none !important; }
+    .form-control.is-token { font-family: var(--mono); font-size: .8rem !important; }
+    .form-select option { background: #fff; color: var(--text-1); }
+    .input-group .form-control { border-right: none !important; }
+    .input-group .btn-eye { background: #fff; border: 1px solid var(--border); border-left: none; color: var(--text-3); padding: 0 .75rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important; transition: all var(--transition); }
+    .input-group .btn-eye:hover { color: var(--teal); }
+    .saved-badge { font-family: var(--mono); font-size: .73rem; color: var(--green); opacity: 0; transition: opacity .3s; }
+    .saved-badge.show { opacity: 1; }
+    .key-info { background: var(--teal-pale); border: 1px solid var(--teal-border); border-left: 3px solid var(--teal); border-radius: var(--radius-sm); padding: .9rem 1.1rem; font-size: .83rem; color: var(--text-2); line-height: 1.65; }
+    .key-info code { color: var(--teal-dark); background: rgba(42,126,122,.1); padding: .1rem .35rem; border-radius: 3px; font-size: .78rem; }
+
+    .btn-api { background: var(--teal); color: #fff; border: none; padding: .6rem 1.35rem; border-radius: var(--radius-sm); font-size: .875rem; font-weight: 600; display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; transition: all var(--transition); }
+    .btn-api:hover { background: var(--teal-dark); color: #fff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(42,126,122,.35); }
+    .btn-api:active { transform: translateY(0); box-shadow: none; }
+    .btn-api:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-outline-dim { background: transparent; color: var(--text-2); border: 1px solid var(--border); padding: .6rem 1rem; border-radius: var(--radius-sm); font-size: .875rem; cursor: pointer; transition: all var(--transition); display: inline-flex; align-items: center; gap: .4rem; }
+    .btn-outline-dim:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ── FIX: next-page inline bar ─────────────────────────────── */
+    .next-page-bar {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: var(--amber-bg);
+      border: 1px solid rgba(217,119,6,.25);
+      border-top: none;
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      padding: .65rem 1rem;
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--amber);
+      flex-wrap: wrap;
+    }
+    .next-page-bar .btn-load-next {
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      padding: .35rem .9rem;
+      border-radius: var(--radius-sm);
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      transition: all var(--transition);
+      font-family: var(--mono);
+    }
+    .next-page-bar .btn-load-next:hover { background: #b45309; }
+    .next-page-bar .btn-load-next:disabled { opacity: .5; cursor: not-allowed; }
+    .next-page-bar .btn-reset-pages {
+      background: transparent;
+      color: var(--text-3);
+      border: 1px solid var(--border);
+      padding: .3rem .7rem;
+      border-radius: var(--radius-sm);
+      font-size: .75rem;
+      cursor: pointer;
+      font-family: var(--mono);
+      transition: all var(--transition);
+    }
+    .next-page-bar .btn-reset-pages:hover { color: var(--red); border-color: var(--red); }
+    .page-counter {
+      font-size: .73rem;
+      color: var(--text-3);
+      font-family: var(--mono);
+    }
+    /* ── end fix ─────────────────────────────────────────────────── */
+
+    .result-panel { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-top: 1.25rem; animation: fadeUp .22s ease; box-shadow: var(--shadow-sm); }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+    .result-toolbar { display: flex; align-items: center; justify-content: space-between; padding: .45rem .9rem; background: var(--bg-card-2); border-bottom: 1px solid var(--border); }
+    .result-label { font-family: var(--mono); font-size: 1rem; color: var(--text-2); letter-spacing: .08em; text-transform: uppercase; }
+    .result-body { background: var(--bg-card-2); padding: 1rem 1.1rem; font-family: var(--mono); font-size: .8rem; line-height: 1.75; color: var(--text-1); max-height: 420px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+    .result-success { background: var(--green-bg); border-top: 1px solid var(--green-border); padding: .85rem 1.1rem; font-family: var(--mono); font-size: .83rem; color: var(--green); }
+    .result-error { background: var(--red-bg); border-top: 1px solid var(--red-border); padding: .85rem 1.1rem; font-family: var(--mono); font-size: .83rem; color: var(--red); }
+
+    .station-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .75rem 1rem; padding: 1rem; background: var(--bg-card-2); }
+    .station-field-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin-bottom: .2rem; }
+    .station-field-value { font-size: .92rem; font-weight: 600; color: var(--text-1); font-family: var(--mono); }
+    .status-badge { display: inline-flex; align-items: center; font-size: .7rem; font-weight: 600; padding: .2rem .55rem; border-radius: 20px; white-space: nowrap; }
+    .status-green  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
+    .status-red    { background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red-border); }
+    .status-amber  { background: var(--amber-bg);  color: var(--amber);  border: 1px solid #fde68a; }
+    .status-grey   { background: var(--bg-card-2); color: var(--text-3); border: 1px solid var(--border); }
+
+    .station-section-label {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--text-3);
+      padding: .55rem 1rem .2rem;
+      background: var(--bg-card-2);
+      border-top: 1px solid var(--border);
+      margin-top: 0;
+    }
+    .station-field { display: flex; flex-direction: column; }
+    .station-field-label { font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: .3rem; }
+    .station-field-value { font-size: .88rem; font-weight: 600; color: var(--text-1); font-family: var(--mono); }
+    .station-field-value.empty { color: var(--text-3); font-style: italic; font-weight: 400; font-size: .8rem; }
+
+    .result-error,
+    .result-success {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 72px;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+    .result-body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 72px;
+    }
+
+    .mode-pill { display: inline-block; background: var(--teal-pale); color: var(--teal-dark); font-family: var(--mono); font-size: .72rem; font-weight: 700; padding: .1rem .45rem; border-radius: 4px; border: 1px solid var(--teal-border); }
+    .band-pill { display: inline-block; background: #f0f0ff; color: var(--purple-mid); font-family: var(--mono); font-size: .72rem; font-weight: 700; padding: .1rem .45rem; border-radius: 4px; border: 1px solid rgba(45,21,128,.15); }
+
+    .dataTables_wrapper .dt-buttons .btn,
+    .dataTables_wrapper .dt-buttons button.dt-button {
+      color: var(--text-1) !important;
+      background: var(--bg-card-2) !important;
+      border: 1px solid var(--border) !important;
+      font-size: .78rem !important;
+      padding: .3rem .7rem !important;
+      font-family: var(--sans) !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+      line-height: 1.4 !important;
+    }
+    .dataTables_wrapper .dt-buttons .btn:hover,
+    .dataTables_wrapper .dt-buttons button.dt-button:hover {
+      color: var(--teal) !important;
+      border-color: var(--teal) !important;
+      background: var(--teal-pale) !important;
+    }
+    div.dt-button-collection {
+      background: #fff !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-sm) !important;
+      box-shadow: var(--shadow) !important;
+      padding: .35rem !important;
+      z-index: 2000 !important;
+    }
+    div.dt-button-collection button.dt-button {
+      color: var(--text-1) !important;
+      background: transparent !important;
+      border: none !important;
+      display: block; width: 100%; text-align: left;
+      padding: .3rem .75rem !important;
+      font-size: .8rem !important;
+      border-radius: 4px !important;
+      margin: 1px 0 !important;
+    }
+    div.dt-button-collection button.dt-button:hover { background: var(--teal-pale) !important; color: var(--teal) !important; }
+    div.dt-button-collection button.dt-button.active { background: var(--teal-pale) !important; color: var(--teal-dark) !important; font-weight: 600 !important; }
+
+    .dataTables_wrapper label { color: var(--text-2) !important; font-size:.82rem; }
+    .dataTables_wrapper select { border: 1px solid var(--border) !important; border-radius: var(--radius-sm) !important; padding: .2rem .4rem !important; font-size: .8rem !important; color: var(--text-1) !important; }
+    .dataTables_wrapper .dt-search input { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .3rem .6rem; font-size: .82rem; outline: none; }
+    .dataTables_wrapper .dt-search input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-bg); }
+    .dataTables_wrapper .dt-info { font-size: .78rem; color: var(--text-2); }
+    .dataTables_wrapper .dt-paging .page-link { color: var(--teal); font-size: .82rem; }
+    .dataTables_wrapper .dt-paging .page-item.active .page-link { background: var(--teal); border-color: var(--teal); }
+
+    table.dataTable thead th { background: var(--teal); color: #fff; font-size: .78rem; font-weight: 600; border: none; white-space: nowrap; text-align: left !important; }
+    table.dataTable thead th.sorting:after, table.dataTable thead th.sorting_asc:after, table.dataTable thead th.sorting_desc:after { opacity: .7; }
+    table.dataTable tbody tr:hover { background: var(--teal-pale) !important; }
+    table.dataTable tbody td { vertical-align: middle; padding: .45rem .6rem; border-bottom: 1px solid var(--border); text-align: left !important; white-space: nowrap; }
+    table.dataTable thead th,
+    table.dataTable thead td {
+      background-color: var(--teal) !important;
+      color: #ffffff !important;
+      text-shadow: none !important;
+      opacity: 1 !important;
+    }
+    table.dataTable thead th.sorting:before,
+    table.dataTable thead th.sorting:after,
+    table.dataTable thead th.sorting_asc:after,
+    table.dataTable thead th.sorting_desc:after {
+      color: rgba(255,255,255,0.7) !important;
+      opacity: 1 !important;
+    }
+    table.dataTable thead .dt-column-order:before,
+    table.dataTable thead .dt-column-order:after {
+      color: rgba(255,255,255,0.7) !important;
+    }
+    .token-box { background: var(--amber-bg); border: 1px solid rgba(217,119,6,.2); border-left: 3px solid var(--amber); border-radius: var(--radius-sm); padding: .6rem .9rem; font-family: var(--mono); font-size: .73rem; color: var(--amber); word-break: break-all; margin-top: .75rem; }
+
+    .code-tabs .nav-link { background: transparent; border: 1px solid var(--border); color: var(--text-2); font-family: var(--mono); font-size: .78rem; padding: .35rem .85rem; border-radius: var(--radius-sm); margin-right: .3rem; transition: all var(--transition); }
+    .code-tabs .nav-link.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+    .code-tabs .nav-link:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+    .code-block { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid #30363d; }
+    .code-block pre { margin: 0; max-height: 580px; overflow-y: auto; overflow-x: auto; }
+    .code-block pre code.hljs { font-family: var(--mono); font-size: .8rem; line-height: 1.75; padding: 1.25rem 1.5rem; border-radius: 0; background: #0d1117; }
+
+    .method-badge { font-family: var(--mono); font-size: .68rem; font-weight: 700; padding: .18rem .55rem; border-radius: 4px; letter-spacing: .05em; }
+    .method-get  { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(3,105,161,.2); }
+    .method-post { background: var(--teal-pale); color: var(--teal-dark); border: 1px solid var(--teal-border); }
+    .endpoint-url { font-family: var(--mono); font-size: .79rem; color: var(--text-2); background: var(--bg-card-2); border: 1px solid var(--border); padding: .3rem .75rem; border-radius: var(--radius-sm); }
+
+    .toast-stack { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: .5rem; pointer-events: none; }
+    .my-toast { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .7rem 1.1rem; font-size: .83rem; font-family: var(--mono); box-shadow: var(--shadow); animation: toastIn .2s ease; pointer-events: auto; display: flex; align-items: center; gap: .6rem; min-width: 260px; max-width: 380px; color: var(--text-1); }
+    .my-toast.success { border-left: 3px solid var(--green); }
+    .my-toast.error   { border-left: 3px solid var(--red); }
+    .my-toast.info    { border-left: 3px solid var(--teal); }
+    .my-toast.warning { border-left: 3px solid var(--amber); }
+    @keyframes toastIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+    .spinner-overlay { position: fixed; inset: 0; background: rgba(22,6,71,.45); display: flex; align-items: center; justify-content: center; z-index: 5000; }
+    .spin-ring { width: 44px; height: 44px; border: 3px solid rgba(255,255,255,.3); border-top-color: var(--teal); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .lang-matrix { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .lang-item { flex: 1 1 120px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .75rem 1rem; cursor: pointer; transition: all var(--transition); text-align: center; background: var(--bg-card-2); user-select: none; }
+    .lang-item:hover { border-color: var(--teal); background: var(--teal-pale); }
+    .lang-item.active { border-color: var(--teal); background: var(--teal); color: #fff; }
+    .lang-icon { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; margin-bottom: .2rem; color: inherit; }
+    .lang-item:not(.active) .lang-icon { color: var(--teal-dark); }
+    .lang-name { font-size: .8rem; font-weight: 600; margin-bottom: .15rem; color: inherit; }
+
+    footer { background: var(--teal); color: rgba(255,255,255,.85); padding: 1.75rem 0; font-size: .85rem; }
+    footer a { color: rgba(255,255,255,.75); text-decoration: none; }
+    footer a:hover { color: #fff; text-decoration: underline; }
+    .d-none { display: none !important; }
+
+    @media (max-width: 991px) {
+      .section-nav { position: static; margin-bottom: 1rem; }
+      .section-nav .nav-link { border-left: none; border-bottom: 2px solid var(--border); padding: .4rem .6rem; font-size: .75rem; display: inline-block; }
+      .section-nav .nav-link.active { border-bottom-color: var(--teal); border-left: none; background: none; }
+    }
+    .adif-drop-zone {
+      border: 2px dashed var(--border-hi);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      background: var(--bg-card-2);
+      user-select: none;
+    }
+    .adif-drop-zone:hover,
+    .adif-drop-zone.dragover {
+      border-color: var(--teal);
+      background: var(--teal-pale);
+    }
+    .adif-drop-zone.has-file {
+      border-color: var(--green);
+      border-style: solid;
+      background: var(--green-bg);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3">
+      <a href="#" class="nav-logo">
+        <img src="https://dsoddbbo8xw54.cloudfront.net/assets/img/Final.png" alt="DxQSO" class="nav-logo-img" />
+      </a>
+      <span class="nav-badge">API Demo v1.0</span>
+      <div class="ms-auto d-flex gap-2">
+        <a href="https://dxqso.net/api/docs/" target="_blank" class="btn-docs">
+          <i class="bi bi-file-earmark-code me-1"></i>API Docs
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="ticker-wrap">
+  <div class="ticker-inner">
+    DxQSO Ham Logbook Sync™ API &nbsp;·&nbsp; POST /upload — up to 2000 QSOs per request &nbsp;·&nbsp;
+    GET /logbook/download — JSON or ADIF &nbsp;·&nbsp; Pagination via X-Next-Token &nbsp;·&nbsp;
+    Full ADIF field support &nbsp;·&nbsp; LoTW · QRZ · Club Log integration &nbsp;·&nbsp;
+    AWS API Gateway · api.dxqso.net &nbsp;·&nbsp; 73 de DxQSO
+  </div>
+</div>
+
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+  <div class="container position-relative">
+    <div class="row">
+      <div class="col-lg-8">
+        <h1><span class="hl">QSO Repository</span> Integration Demo</h1>
+        <p class="hero-sub">A working reference implementation showing how to integrate the DxQSO Ham Logbook Sync™ API into your ham radio application. Upload QSOs, download logbooks, and sync in real time.</p>
+        <div class="hero-chips mb-0">
+          <span class="chip"><i class="bi bi-key me-1"></i>Bearer Token Auth</span>
+          <span class="chip"><i class="bi bi-arrow-up-circle me-1"></i>POST /upload</span>
+          <span class="chip"><i class="bi bi-arrow-down-circle me-1"></i>GET /logbook/download</span>
+          <span class="chip"><i class="bi bi-file-earmark-text me-1"></i>ADIF / JSON</span>
+          <span class="chip"><i class="bi bi-layers me-1"></i>Paginated</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container pb-5">
+  <div class="row gx-4">
+
+    <div class="col-lg-2">
+      <nav class="section-nav" id="section-nav">
+        <div class="nav flex-column">
+          <a class="nav-link active" href="#section-keys">01 · Keys</a>
+          <a class="nav-link" href="#section-station">02 · Station Info</a>
+          <a class="nav-link" href="#section-upload">03 · Upload QSO</a>
+          <a class="nav-link" href="#section-download">04 · Query QSOs</a>
+          <a class="nav-link" href="#section-code">05 · Code</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="col-lg-10">
+
+      <!-- SECTION 01: KEYS -->
+      <section id="section-keys" class="api-card">
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <span class="card-step">01</span>
+          <div class="flex-grow-1">
+            <div class="card-title">API Keys</div>
+            <div class="card-subtitle">Enter once — saved in your browser's localStorage</div>
+          </div>
+          <button class="btn-outline-dim btn-sm" id="toggle-visibility-btn" title="Show/hide keys">
+            <i class="bi bi-eye" id="eye-icon"></i>
+          </button>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Vendor Token <span class="required">*</span><div class="form-hint">Provided by DxQSO — email <a href="/cdn-cgi/l/email-protection#364543464659444276524e47455918594451"><span class="__cf_email__" data-cfemail="671412171708151327031f16140849081500">[email&#160;protected]</span></a></div></label>
+            <div class="input-group">
+              <input type="password" id="vendor-token" class="form-control form-control-sm is-token" placeholder="Bearer eyJ..." autocomplete="off" />
+              <button class="btn-eye" id="eye-vendor" onclick="toggleField('vendor-token','eye-vendor')"><i class="bi bi-eye"></i></button>
+            </div>
+            <div class="form-hint">Header: <code style="color:var(--teal-dark);font-size:.72rem;background:var(--teal-pale);padding:.1rem .3rem;border-radius:3px">Authorization: Bearer &lt;vendor_token&gt;</code></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Station Token <span class="required">*</span><div class="form-hint">User generates at <a href="https://dxqso.net/lotw/stations/" target="_blank">dxqso.net → Stations</a></div></label>
+            <div class="input-group">
+              <input type="password" id="station-token" class="form-control form-control-sm is-token" placeholder="Bearer eyJ..." autocomplete="off" />
+              <button class="btn-eye" id="eye-station" onclick="toggleField('station-token','eye-station')"><i class="bi bi-eye"></i></button>
+            </div>
+            <div class="form-hint">Header: <code style="color:var(--teal-dark);font-size:.72rem;background:var(--teal-pale);padding:.1rem .3rem;border-radius:3px">dxqso-station-token: Bearer &lt;station_token&gt;</code></div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <button class="btn-api" onclick="saveKeys()"><i class="bi bi-floppy"></i> Save Keys</button>
+          <button class="btn-outline-dim" onclick="clearKeys()"><i class="bi bi-trash3"></i> Clear</button>
+          <span class="saved-badge" id="saved-badge"><i class="bi bi-check-circle me-1"></i>Saved</span>
+        </div>
+        <div class="key-info">
+          <strong>Authentication model:</strong> Every API request requires <em>two</em> Bearer tokens.<br>
+          <code>Authorization: Bearer &lt;vendor_token&gt;</code> — identifies your application (one per vendor, long-lived)<br>
+          <code>dxqso-station-token: Bearer &lt;station_token&gt;</code> — identifies the end-user's station (JWT, generated per user)
+        </div>
+      </section>
+
+      <!-- SECTION 02: STATION INFO -->
+      <section id="section-station" class="api-card">
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <span class="card-step">02</span>
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <div class="card-title mb-0">Station Info</div>
+              <span class="method-badge method-get">GET</span>
+              <code class="endpoint-url">https://dxqso.net/tqsl/api/station/info/</code>
+            </div>
+            <div class="card-subtitle">Fetch station details for the authenticated user — uses Station Token only (Django API)</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn-api" id="station-btn" onclick="doStationInfo()"><i class="bi bi-broadcast-pin"></i> Query Station Info</button>
+        </div>
+        <div id="station-result" class="d-none mt-3"></div>
+      </section>
+
+      <!-- SECTION 03: UPLOAD -->
+      <section id="section-upload" class="api-card">
+        <div class="d-flex align-items-start gap-3 mb-1">
+          <span class="card-step">03</span>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <div class="card-title mb-0">Upload QSO</div>
+              <span class="method-badge method-post">POST</span>
+              <code class="endpoint-url">https://api.dxqso.net/upload</code>
+            </div>
+            <div class="card-subtitle">Push one QSO record to the user's DxQSO cloud repository (JSON format)</div>
+          </div>
+        </div>
+        <ul class="nav code-tabs mt-3 mb-3" id="upload-format-tabs">
+          <li class="nav-item"><a class="nav-link active" href="#" onclick="switchUploadTab('json',this); return false;"><i class="bi bi-braces me-1"></i>JSON</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="switchUploadTab('adif',this); return false;"><i class="bi bi-file-earmark-text me-1"></i>ADIF (raw text)</a></li>
+        </ul>
+        <div id="tab-upload-json">
+          <div class="row g-3">
+            <div class="col-sm-4"><label class="form-label">Callsign <span class="required">*</span></label><input type="text" id="u-call" class="form-control form-control-sm" placeholder="W1AW" maxlength="20" /></div>
+            <div class="col-sm-4"><label class="form-label">Date UTC <span class="required">*</span></label><input type="date" id="u-date" class="form-control form-control-sm" /></div>
+            <div class="col-sm-4"><label class="form-label">Time UTC <span class="required">*</span></label><input type="time" id="u-time" class="form-control form-control-sm" step="1" /></div>
+            <div class="col-sm-4">
+              <label class="form-label">Mode <span class="required">*</span></label>
+              <select id="u-mode" class="form-select form-select-sm">
+                <option value="">— select —</option>
+                <optgroup label="Digital"><option>FT8</option><option>FT4</option><option>JS8</option><option>PSK31</option><option>RTTY</option><option>WSPR</option><option>JT65</option><option>JT9</option><option>DATA</option></optgroup>
+                <optgroup label="Voice"><option>SSB</option><option>USB</option><option>LSB</option><option>AM</option><option>FM</option></optgroup>
+                <optgroup label="CW / Other"><option>CW</option><option>SSTV</option></optgroup>
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Band <span class="required">*</span></label>
+              <select id="u-band" class="form-select form-select-sm">
+                <option value="">— select —</option>
+                <option>160m</option><option>80m</option><option>60m</option><option>40m</option><option>30m</option><option>20m</option><option>17m</option><option>15m</option><option>12m</option><option>10m</option><option>6m</option><option>2m</option><option>70cm</option>
+              </select>
+            </div>
+            <div class="col-sm-4"><label class="form-label">Comment</label><input type="text" id="u-comment" class="form-control form-control-sm" placeholder="Optional note" maxlength="255" /></div>
+          </div>
+        </div>
+
+        <div id="tab-upload-adif" class="d-none">
+          <div class="adif-drop-zone" id="adif-drop-zone" onclick="document.getElementById('adif-file-input').click()">
+            <input type="file" id="adif-file-input" accept=".adi,.adif" style="display:none" onchange="handleAdifFile(this)" />
+            <div id="adif-drop-content">
+              <i class="bi bi-file-earmark-arrow-up" style="font-size:2rem;color:var(--teal);display:block;margin-bottom:.5rem"></i>
+              <div style="font-weight:600;color:var(--text-1);margin-bottom:.25rem">Click to select or drag & drop</div>
+              <div style="font-size:.78rem;color:var(--text-3);font-family:var(--mono)">.adi / .adif files only · up to 2000 QSOs</div>
+            </div>
+            <div id="adif-file-chosen" class="d-none">
+              <i class="bi bi-file-earmark-check" style="font-size:2rem;color:var(--green);display:block;margin-bottom:.5rem"></i>
+              <div id="adif-file-name" style="font-weight:600;color:var(--text-1);font-family:var(--mono);margin-bottom:.25rem"></div>
+              <div id="adif-file-meta" style="font-size:.78rem;color:var(--text-3);font-family:var(--mono)"></div>
+              <button class="btn-outline-dim mt-2" style="font-size:.75rem;padding:.25rem .65rem" onclick="clearAdifFile(event)">
+                <i class="bi bi-x me-1"></i>Remove
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 mt-4">
+          <button class="btn-api" id="upload-btn" onclick="doUpload()"><i class="bi bi-cloud-upload"></i> Upload QSO</button>
+          <button class="btn-outline-dim" onclick="resetUploadForm()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+        </div>
+        <div id="upload-result" class="d-none"></div>
+      </section>
+
+      <!-- SECTION 04: DOWNLOAD -->
+      <section id="section-download" class="api-card">
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <span class="card-step">04</span>
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <div class="card-title mb-0">Query QSOs</div>
+              <span class="method-badge method-get">GET</span>
+              <code class="endpoint-url">https://api.dxqso.net/logbook/download</code>
+            </div>
+            <div class="card-subtitle">Fetch QSOs modified since a date/time. Download as ADIF file or view inline. Paginated via <code style="color:var(--teal-dark);font-size:.75rem">X-Next-Token</code>.</div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-sm-6 col-md-4"><label class="form-label">Format</label><select id="dl-format" class="form-select form-select-sm"><option value="json" selected>JSON (view inline)</option><option value="adif">ADIF (download file)</option></select></div>
+          <div class="col-sm-6 col-md-4"><label class="form-label">QSO Start Date<div class="form-hint">YYYYMMDD</div></label><input type="text" id="dl-start" class="form-control form-control-sm is-token" placeholder="20250101" maxlength="8" /></div>
+          <div class="col-sm-6 col-md-4"><label class="form-label">QSO End Date<div class="form-hint">YYYYMMDD</div></label><input type="text" id="dl-end" class="form-control form-control-sm is-token" placeholder="20251231" maxlength="8" /></div>
+          <div class="col-sm-6 col-md-4">
+            <label class="form-label">Filter by Mode</label>
+            <select id="dl-mode" class="form-select form-select-sm"><option value="">All modes</option><option>FT8</option><option>FT4</option><option>CW</option><option>SSB</option><option>USB</option><option>LSB</option><option>AM</option><option>FM</option><option>RTTY</option><option>PSK31</option><option>WSPR</option></select>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <label class="form-label">Filter by Band</label>
+            <select id="dl-band" class="form-select form-select-sm"><option value="">All bands</option><option>160m</option><option>80m</option><option>40m</option><option>20m</option><option>17m</option><option>15m</option><option>10m</option><option>6m</option><option>2m</option><option>70cm</option></select>
+          </div>
+          <div class="col-sm-6 col-md-4"><label class="form-label">Modified Since<div class="form-hint">Only fetch QSOs changed after this date/time</div></label><input type="datetime-local" id="dl-since" class="form-control form-control-sm" /></div>
+          <div class="col-12">
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" id="dl-fetch-all" onchange="toggleFetchAll(this)">
+              <label class="form-check-label" for="dl-fetch-all"><strong>Fetch All QSOs</strong><span class="form-hint d-inline ms-1">— ignore the Modified Since filter and return everything</span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- next-token is managed internally — no visible field needed -->
+        <input type="hidden" id="dl-next-token" />
+
+        <div class="d-flex align-items-center gap-3 mt-4 flex-wrap">
+          <button class="btn-api" id="download-btn" onclick="doDownload(false)"><i class="bi bi-cloud-download"></i> Download QSOs</button>
+          <button class="btn-outline-dim" onclick="clearDownloadFilters()"><i class="bi bi-x-circle"></i> Clear Filters</button>
+          <button class="btn-outline-dim" onclick="doCorsTest()" title="Test CORS preflight"><i class="bi bi-stethoscope"></i> Test CORS</button>
+          <!-- FIX: Reset accumulation button -->
+          <button class="btn-outline-dim" id="reset-pages-btn" onclick="resetAccumulation()" style="display:none;color:var(--red);border-color:var(--red)">
+            <i class="bi bi-trash3"></i> Reset &amp; Start Over
+          </button>
+        </div>
+        <div id="cors-result" class="d-none"></div>
+        <div id="download-result" class="d-none"></div>
+      </section>
+
+      <!-- SECTION 05: CODE -->
+      <section id="section-code" class="api-card">
+        <div class="d-flex align-items-start gap-3 mb-2">
+          <span class="card-step" style="font-size:.9rem">⌨</span>
+          <div><div class="card-title">Code Reference</div><div class="card-subtitle">Copy-paste integration examples — matched to the language your logbook app is built in</div></div>
+        </div>
+        <div class="lang-matrix mb-4">
+          <div class="lang-item active" onclick="switchCodeTab('csharp',this)"><div class="lang-icon">C#</div><div class="lang-name">C# / .NET</div></div>
+          <div class="lang-item" onclick="switchCodeTab('cpp',this)"><div class="lang-icon">C++</div><div class="lang-name">C++ (libcurl)</div></div>
+          <div class="lang-item" onclick="switchCodeTab('swift',this)"><div class="lang-icon">Swift</div><div class="lang-name">Swift / Obj-C</div></div>
+          <div class="lang-item" onclick="switchCodeTab('python',this)"><div class="lang-icon">Py</div><div class="lang-name">Python</div></div>
+          <div class="lang-item" onclick="switchCodeTab('curl',this)"><div class="lang-icon">$_</div><div class="lang-name">cURL</div></div>
+        </div>
+        <div id="code-csharp" class="code-block"><pre><code class="language-csharp">// DxQSO API — C# / .NET 6+ example
+using System.Net.Http.Headers;
+using System.Text.Json;
+
+public class DxqsoClient {
+    private readonly HttpClient _http;
+    private readonly string _vendorToken, _stationToken;
+    private const string ApiBase = "https://api.dxqso.net";
+
+    public DxqsoClient(HttpClient http, string vendorToken, string stationToken) {
+        _http = http; _vendorToken = vendorToken; _stationToken = stationToken;
+    }
+
+    private void AddAuth(HttpRequestMessage req, string? nextToken = null) {
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _vendorToken);
+        req.Headers.Add("dxqso-station-token", $"Bearer {_stationToken}");
+        if (nextToken != null) req.Headers.Add("X-Next-Token", nextToken);
+    }
+
+    public async Task UploadQsoAsync(string call, string band, string mode, string date, string timeOn) {
+        var payload = JsonSerializer.Serialize(new { qsos = new[] { new { call, band, mode, qso_date = date, time_on = timeOn } } });
+        var req = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}/upload") {
+            Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+        };
+        AddAuth(req);
+        (await _http.SendAsync(req)).EnsureSuccessStatusCode();
+    }
+
+    public async Task&lt;List&lt;string&gt;&gt; DownloadLogbookAsync(string? since = null) {
+        var results = new List&lt;string&gt;(); string? nextToken = null;
+        do {
+            var url = $"{ApiBase}/logbook/download?format=json{(since != null ? $"&qso_since={Uri.EscapeDataString(since)}" : "")}";
+            var req = new HttpRequestMessage(HttpMethod.Get, url);
+            AddAuth(req, nextToken);
+            var res = await _http.SendAsync(req); res.EnsureSuccessStatusCode();
+            results.Add(await res.Content.ReadAsStringAsync());
+            res.Headers.TryGetValues("X-Next-Token", out var tokens);
+            nextToken = tokens?.FirstOrDefault();
+        } while (nextToken != null);
+        return results;
+    }
+}</code></pre></div>
+
+        <div id="code-cpp" class="code-block d-none"><pre><code class="language-cpp">// DxQSO API — C++ / libcurl example
+#include &lt;curl/curl.h&gt;
+#include &lt;nlohmann/json.hpp&gt;
+#include &lt;string&gt;
+using json = nlohmann::json;
+
+class DxqsoClient {
+    std::string _vendorToken, _stationToken;
+    const std::string _apiBase = "https://api.dxqso.net";
+
+    static size_t WriteBody(char* p, size_t, size_t n, std::string* out) { out->append(p, n); return n; }
+
+    curl_slist* BuildHeaders(const std::string& ct, const std::string& nt = "") {
+        curl_slist* h = nullptr;
+        h = curl_slist_append(h, ("Authorization: Bearer " + _vendorToken).c_str());
+        h = curl_slist_append(h, ("dxqso-station-token: Bearer " + _stationToken).c_str());
+        h = curl_slist_append(h, ("Content-Type: " + ct).c_str());
+        if (!nt.empty()) h = curl_slist_append(h, ("X-Next-Token: " + nt).c_str());
+        return h;
+    }
+
+public:
+    DxqsoClient(const std::string& vt, const std::string& st) : _vendorToken(vt), _stationToken(st) {
+        curl_global_init(CURL_GLOBAL_DEFAULT);
+    }
+    ~DxqsoClient() { curl_global_cleanup(); }
+
+    void UploadQso(const std::string& call, const std::string& band, const std::string& mode,
+                   const std::string& date, const std::string& timeOn) {
+        json body = { {"qsos", {{ {"call",call},{"band",band},{"mode",mode},{"qso_date",date},{"time_on",timeOn} }}} };
+        std::string payload = body.dump();
+        CURL* curl = curl_easy_init(); std::string resp;
+        curl_slist* hdrs = BuildHeaders("application/json");
+        curl_easy_setopt(curl, CURLOPT_URL, (_apiBase + "/upload").c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hdrs);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteBody);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp);
+        curl_easy_perform(curl);
+        curl_slist_free_all(hdrs); curl_easy_cleanup(curl);
+    }
+};</code></pre></div>
+
+        <div id="code-swift" class="code-block d-none"><pre><code class="language-swift">// DxQSO API — Swift / macOS 12+ example
+import Foundation
+
+class DxqsoClient {
+    private let session = URLSession.shared
+    private let apiBase = "https://api.dxqso.net"
+    private let vendorToken: String
+    private let stationToken: String
+
+    init(vendorToken: String, stationToken: String) {
+        self.vendorToken = vendorToken
+        self.stationToken = stationToken
+    }
+
+    private func addAuth(to request: inout URLRequest, nextToken: String? = nil) {
+        request.setValue("Bearer \(vendorToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(stationToken)", forHTTPHeaderField: "dxqso-station-token")
+        if let t = nextToken { request.setValue(t, forHTTPHeaderField: "X-Next-Token") }
+    }
+
+    func uploadQso(call: String, band: String, mode: String, date: String, timeOn: String) async throws {
+        let payload: [String: Any] = ["qsos": [["call": call, "band": band, "mode": mode, "qso_date": date, "time_on": timeOn]]]
+        var req = URLRequest(url: URL(string: "\(apiBase)/upload")!)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        addAuth(to: &req)
+        let (_, response) = try await session.data(for: req)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+    }
+
+    func downloadLogbook(since: String? = nil) async throws -> [[String: Any]] {
+        var all: [[String: Any]] = []; var nextToken: String? = nil
+        repeat {
+            var comps = URLComponents(string: "\(apiBase)/logbook/download")!
+            var items = [URLQueryItem(name: "format", value: "json")]
+            if let s = since { items.append(.init(name: "qso_since", value: s)) }
+            comps.queryItems = items
+            var req = URLRequest(url: comps.url!)
+            addAuth(to: &req, nextToken: nextToken)
+            let (data, res) = try await session.data(for: req)
+            if let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let page = body["qsos"] as? [[String: Any]] { all.append(contentsOf: page) }
+            nextToken = (res as? HTTPURLResponse)?.value(forHTTPHeaderField: "X-Next-Token")
+        } while nextToken != nil
+        return all
+    }
+}</code></pre></div>
+
+        <div id="code-python" class="code-block d-none"><pre><code class="language-python"># DxQSO API — Python 3.8+ example
+# pip install requests
+import requests
+from typing import Optional
+
+class DxqsoClient:
+    API_BASE = "https://api.dxqso.net"
+
+    def __init__(self, vendor_token: str, station_token: str):
+        self._vendor_token  = vendor_token
+        self._station_token = station_token
+        self._session       = requests.Session()
+
+    def _auth(self, next_token: Optional[str] = None) -> dict:
+        h = {"Authorization": f"Bearer {self._vendor_token}",
+             "dxqso-station-token": f"Bearer {self._station_token}"}
+        if next_token: h["X-Next-Token"] = next_token
+        return h
+
+    def upload_qso(self, call, band, mode, qso_date, time_on, freq=None):
+        qso = {"call": call, "band": band, "mode": mode, "qso_date": qso_date, "time_on": time_on}
+        if freq: qso["freq"] = freq
+        self._session.post(f"{self.API_BASE}/upload", headers=self._auth(), json={"qsos": [qso]}).raise_for_status()
+
+    def upload_adif_file(self, file_path: str):
+        with open(file_path, "r", encoding="utf-8") as f: content = f.read()
+        self._session.post(f"{self.API_BASE}/upload", headers={**self._auth(), "Content-Type": "text/plain"}, data=content.encode()).raise_for_status()
+
+    def download_logbook(self, since=None, mode=None, band=None):
+        all_qsos, next_token = [], None
+        while True:
+            params = {"format": "json"}
+            if since: params["qso_since"] = since
+            if mode:  params["qso_mode"]  = mode
+            if band:  params["qso_band"]  = band
+            r = self._session.get(f"{self.API_BASE}/logbook/download", headers=self._auth(next_token), params=params)
+            r.raise_for_status()
+            all_qsos += r.json().get("qsos", [])
+            next_token = r.headers.get("X-Next-Token")
+            if not next_token: break
+        return all_qsos</code></pre></div>
+
+        <div id="code-curl" class="code-block d-none"><pre><code class="language-bash"># DxQSO API — cURL examples
+VENDOR="your_vendor_token"
+STATION="your_station_token"
+
+# Upload a single QSO
+curl -s -X POST https://api.dxqso.net/upload \
+     -H "Authorization: Bearer $VENDOR" \
+     -H "dxqso-station-token: Bearer $STATION" \
+     -H "Content-Type: application/json" \
+     -d '{"qsos": [{"call":"VK2ABC","band":"40m","mode":"FT8","qso_date":"20240802","time_on":"015115"}]}'
+
+# Upload an ADIF file
+curl -s -X POST https://api.dxqso.net/upload \
+     -H "Authorization: Bearer $VENDOR" \
+     -H "dxqso-station-token: Bearer $STATION" \
+     -H "Content-Type: text/plain" \
+     --data-binary @my_log.adi
+
+# Download as JSON
+curl -s "https://api.dxqso.net/logbook/download?format=json" \
+     -H "Authorization: Bearer $VENDOR" \
+     -H "dxqso-station-token: Bearer $STATION"
+
+# Incremental sync — only QSOs changed since a date
+curl -s "https://api.dxqso.net/logbook/download?format=json&qso_since=2025-01-01T00:00:00" \
+     -H "Authorization: Bearer $VENDOR" \
+     -H "dxqso-station-token: Bearer $STATION"
+
+# Pagination — pass next token header
+curl -s "https://api.dxqso.net/logbook/download?format=json" \
+     -H "Authorization: Bearer $VENDOR" \
+     -H "dxqso-station-token: Bearer $STATION" \
+     -H "X-Next-Token: eyJjcmVhdGVkX2F0IjoiM..."
+
+# Save as ADIF file
+curl -s "https://api.dxqso.net/logbook/download?format=adif" \
+     -H "Authorization: Bearer $VENDOR" \
+     -H "dxqso-station-token: Bearer $STATION" \
+     -o my_logbook.adi</code></pre></div>
+
+      </section>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <img src="https://dsoddbbo8xw54.cloudfront.net/assets/img/Final.png" alt="DxQSO" class="footer-logo-img" />
+        <div style="font-size:.82rem;color:rgba(255,255,255,.8);margin-top:.35rem">Cloud QSO Repository API Demo</div>
+      </div>
+      <div class="d-flex gap-3">
+        <a href="https://dxqso.net/api/docs/">API Docs</a>
+        <a href="https://dxqso.org/support/">Support</a>
+        <a href="https://dxqso.org">DxQSO.org</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-stack" class="toast-stack"></div>
+<div id="spinner" class="spinner-overlay d-none"><div class="spin-ring"></div></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+"use strict";
+
+const API_BASE    = "https://api.dxqso.net";
+const DJANGO_BASE = "https://dxqso.net";
+const LS_VENDOR   = "dxqso_vendor_token";
+const LS_STATION  = "dxqso_station_token";
+
+// ── FIX: accumulator for paginated QSOs ──────────────────────────────
+// Tracks all QSOs loaded so far + the pending next-token from the last response.
+// Cleared only when the user clicks "Reset & Start Over" or "Clear Filters".
+let _accumulatedQsos  = [];   // all QSOs loaded across pages
+let _pendingNextToken = null; // the X-Next-Token from the last successful response
+let _pagesFetched     = 0;   // how many pages have been fetched so far
+
+// The API returns this many QSOs per page. If a page returns fewer than this,
+// it IS the last page — regardless of whether X-Next-Token is present.
+// (The API sends a stale/leftover token even on the final page.)
+const API_PAGE_SIZE = 1000;
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadKeys();
+  setDefaultUploadDateTime();
+  setDefaultDownloadSince();
+  initSectionNav();
+  loadCachedStation();
+});
+
+function loadKeys() {
+  const vt = localStorage.getItem(LS_VENDOR)  || "";
+  const st = localStorage.getItem(LS_STATION) || "";
+  if (vt) document.getElementById("vendor-token").value  = vt;
+  if (st) document.getElementById("station-token").value = st;
+}
+
+function loadCachedStation() {
+  const cached = localStorage.getItem("dxqso_station_data");
+  if (!cached) return;
+  try { renderStationResult(JSON.parse(cached)); }
+  catch (e) { localStorage.removeItem("dxqso_station_data"); }
+}
+
+function saveKeys() {
+  const vt = document.getElementById("vendor-token").value.trim();
+  const st = document.getElementById("station-token").value.trim();
+  if (!vt || !st) { toast("Both tokens are required.", "error"); return; }
+  localStorage.setItem(LS_VENDOR, vt);
+  localStorage.setItem(LS_STATION, st);
+  const badge = document.getElementById("saved-badge");
+  badge.classList.add("show");
+  setTimeout(() => badge.classList.remove("show"), 2800);
+  toast("Tokens saved to localStorage.", "success");
+}
+
+function clearKeys() {
+  localStorage.removeItem(LS_VENDOR);
+  localStorage.removeItem(LS_STATION);
+  localStorage.removeItem("dxqso_station_data");
+  document.getElementById("vendor-token").value  = "";
+  document.getElementById("station-token").value = "";
+  document.getElementById("station-result").classList.add("d-none");
+  toast("Tokens cleared.", "info");
+}
+
+function toggleField(inputId, btnId) {
+  const el   = document.getElementById(inputId);
+  const icon = document.getElementById(btnId).querySelector("i");
+  el.type    = el.type === "password" ? "text" : "password";
+  icon.className = el.type === "password" ? "bi bi-eye" : "bi bi-eye-slash";
+}
+
+function getTokens() {
+  let vt = (document.getElementById("vendor-token").value.trim()  || localStorage.getItem(LS_VENDOR)  || "").replace(/^Bearer\s+/i, "");
+  let st = (document.getElementById("station-token").value.trim() || localStorage.getItem(LS_STATION) || "").replace(/^Bearer\s+/i, "");
+  return { vt, st };
+}
+
+function requireTokens() {
+  const { vt, st } = getTokens();
+  if (!vt || !st) { toast("Please enter and save both API tokens first.", "error"); document.getElementById("section-keys").scrollIntoView({ behavior: "smooth" }); return null; }
+  return { vt, st };
+}
+
+function authHeaders(vt, st, extra = {}) {
+  return { "Authorization": `Bearer ${vt}`, "dxqso-station-token": `Bearer ${st}`, ...extra };
+}
+
+// ── Station Info (unchanged) ─────────────────────────────────────────
+function renderStationResult(d) {
+  const resultEl = document.getElementById("station-result");
+  const field = (label, val, icon = "") => {
+    if (val === null || val === undefined || val === "") return "";
+    return `<div class="station-field"><div class="station-field-label">${icon ? `<i class="bi bi-${icon} me-1"></i>` : ""}${label}</div><div class="station-field-value">${escHtml(String(val))}</div></div>`;
+  };
+  const boolBadge = (val, trueLabel, falseLabel) => val
+    ? `<span class="status-badge status-green"><i class="bi bi-check-circle me-1"></i>${trueLabel}</span>`
+    : `<span class="status-badge status-grey"><i class="bi bi-dash-circle me-1"></i>${falseLabel}</span>`;
+  const dateFmt = iso => {
+    if (!iso) return null;
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }); }
+    catch (e) { return iso; }
+  };
+  const syncField = (label, icon, iso) => `
+    <div class="station-field">
+      <div class="station-field-label"><i class="bi bi-${icon} me-1"></i>${label}</div>
+      <div class="station-field-value${!iso ? " empty" : ""}">${escHtml(dateFmt(iso) || "Never")}</div>
+    </div>`;
+  const cachedAt = (() => {
+    try { return JSON.parse(localStorage.getItem("dxqso_station_data") || "{}")._cached_at; }
+    catch (e) { return null; }
+  })();
+  const cacheNotice = cachedAt
+    ? `<span style="font-family:var(--mono);font-size:.68rem;color:var(--text-3)"><i class="bi bi-clock-history me-1"></i>cached ${new Date(cachedAt).toLocaleString()}</span>` : "";
+  const lotwCertBadge = d.is_lotw_station
+    ? `<span class="status-badge status-green"><i class="bi bi-patch-check me-1"></i>LoTW Cert</span>`
+    : `<span class="status-badge status-grey"><i class="bi bi-patch-minus me-1"></i>No LoTW Cert</span>`;
+
+  resultEl.innerHTML = `
+    <div class="result-panel">
+      <div class="result-toolbar">
+        <span class="result-label"><i class="bi bi-broadcast-pin me-1"></i>${escHtml(d.station_name || "Station")}</span>
+        <div class="d-flex align-items-center gap-2 flex-wrap">${cacheNotice}${lotwCertBadge}</div>
+      </div>
+      <div class="station-section-label">Station</div>
+      <div class="station-grid">
+        ${field("Callsign",     d.call_sign,    "person-badge")}
+        ${field("Grid Square",  d.gridsquare,   "grid")}
+        ${field("ITU Zone",     d.ituz,         "globe")}
+        ${field("CQ Zone",      d.cqz,          "globe2")}
+        ${field("State",        d.us_state,     "geo-alt")}
+        ${field("County",       d.us_county,    "geo")}
+        ${field("Station Type", d.station_type, "broadcast")}
+        ${field("Event",        d.event,        "calendar-event")}
+        ${d.number_of_qsos !== undefined ? field("Station QSOs", d.number_of_qsos.toLocaleString(), "journal-text") : ""}
+        ${field("Last Modified Date", dateFmt(d.last_modified), "clock")}
+      </div>
+      <div class="station-section-label">LoTW — Logbook of the World</div>
+      <div class="station-grid">
+        <div class="station-field"><div class="station-field-label"><i class="bi bi-arrow-up-circle me-1"></i>Upload (Push)</div><div class="station-field-value">${boolBadge(d.is_lotw_upload, "Enabled", "Disabled")}</div></div>
+        <div class="station-field"><div class="station-field-label"><i class="bi bi-arrow-down-circle me-1"></i>Download (Pull)</div><div class="station-field-value">${boolBadge(d.is_lotw_download, "Enabled", "Disabled")}</div></div>
+        ${syncField("Last Upload",   "cloud-upload",   d.last_lotw_upload)}
+        ${syncField("Last Download", "cloud-download", d.last_lotw_download)}
+      </div>
+      <div class="station-section-label">QRZ</div>
+      <div class="station-grid">
+        <div class="station-field"><div class="station-field-label"><i class="bi bi-arrow-up-circle me-1"></i>Upload (Push)</div><div class="station-field-value">${boolBadge(d.is_qrz_upload, "Enabled", "Disabled")}</div></div>
+        <div class="station-field"><div class="station-field-label"><i class="bi bi-arrow-down-circle me-1"></i>Download (Pull)</div><div class="station-field-value">${boolBadge(d.is_qrz_download, "Enabled", "Disabled")}</div></div>
+        ${syncField("Last Upload",   "cloud-upload",   d.last_qrz_upload)}
+        ${syncField("Last Download", "cloud-download", d.last_qrz_download)}
+      </div>
+    </div>`;
+  resultEl.classList.remove("d-none");
+}
+
+async function doStationInfo() {
+  const { st } = getTokens();
+  if (!st) { toast("Please enter your Station Token first.", "error"); return; }
+  showSpinner(); setButtonLoading("station-btn", true);
+  $.ajax({
+    url: `${DJANGO_BASE}/tqsl/api/station/info/`,
+    method: "GET",
+    headers: { "Authorization": `Bearer ${st}` },
+    success: function(d) {
+      d._cached_at = new Date().toISOString();
+      localStorage.setItem("dxqso_station_data", JSON.stringify(d));
+      renderStationResult(d);
+      toast(`Station: ${d.station_name || d.call_sign}`, "success");
+    },
+    error: function(xhr) {
+      const body = xhr.responseJSON || {};
+      const errMsg = body.error || body.detail || body.message || xhr.statusText;
+      if (xhr.status === 0) { showApiError("station-result", null, "Station Info Error", "CORS error — ensure dxqso.net allows requests from this origin."); toast("CORS error", "error"); }
+      else { showApiError("station-result", xhr.status, "Station Info Error", errMsg); toast(`HTTP ${xhr.status} — ${errMsg}`, "error"); }
+    },
+    complete: function() { hideSpinner(); setButtonLoading("station-btn", false); }
+  });
+}
+
+// ── Upload (unchanged) ───────────────────────────────────────────────
+let currentUploadTab = "json";
+function switchUploadTab(tab, el) {
+  currentUploadTab = tab;
+  document.getElementById("tab-upload-json").classList.toggle("d-none", tab !== "json");
+  document.getElementById("tab-upload-adif").classList.toggle("d-none", tab !== "adif");
+  document.querySelectorAll("#upload-format-tabs .nav-link").forEach(a => a.classList.remove("active"));
+  el.classList.add("active");
+}
+function setDefaultUploadDateTime() {
+  const now = new Date();
+  document.getElementById("u-date").value = now.toISOString().slice(0,10);
+  document.getElementById("u-time").value = now.toISOString().slice(11,19);
+}
+function setDefaultDownloadSince() {
+  const today = new Date(); today.setUTCHours(0,0,0,0);
+  document.getElementById("dl-since").value = today.toISOString().slice(0,16);
+}
+function toggleFetchAll(cb) {
+  const el = document.getElementById("dl-since");
+  el.disabled = cb.checked;
+  if (cb.checked) el.value = "";
+}
+
+async function doUpload() {
+  const tokens = requireTokens();
+  if (!tokens) return;
+  let fetchOptions;
+  if (currentUploadTab === "adif") {
+    const adif = window._adifFileContent;
+    if (!adif) { toast("Please select an .adi or .adif file.", "error"); return; }
+    fetchOptions = { method: "POST", headers: authHeaders(tokens.vt, tokens.st, {"Content-Type": "text/plain"}), body: adif };
+  } else {
+    const call = document.getElementById("u-call").value.trim().toUpperCase();
+    const dateRaw = document.getElementById("u-date").value;
+    const timeRaw = document.getElementById("u-time").value;
+    const mode = document.getElementById("u-mode").value;
+    const band = document.getElementById("u-band").value;
+    const comment = document.getElementById("u-comment").value.trim();
+    const errors = [];
+    if (!call) errors.push("Callsign"); if (!dateRaw) errors.push("Date UTC");
+    if (!timeRaw) errors.push("Time UTC"); if (!mode) errors.push("Mode"); if (!band) errors.push("Band");
+    if (errors.length) { toast("Required: " + errors.join(", "), "error"); return; }
+    const qso = { call, band, qso_date: dateRaw.replace(/-/g,""), time_on: timeRaw.replace(/:/g,""), mode };
+    if (comment) qso.comment = comment;
+    fetchOptions = { method: "POST", headers: authHeaders(tokens.vt, tokens.st, {"Content-Type":"application/json"}), body: JSON.stringify({qsos:[qso]}) };
+  }
+  showSpinner(); setButtonLoading("upload-btn", true);
+  try {
+    const res  = await fetch(`${API_BASE}/upload`, fetchOptions);
+    const body = await res.json().catch(async () => ({message: await res.clone().text().catch(() => res.statusText)}));
+    const resultEl = document.getElementById("upload-result");
+    if (res.ok) {
+      resultEl.innerHTML = `<div class="result-panel"><div class="result-toolbar"><span class="result-label">Upload Response</span><span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)">HTTP ${res.status}</span></div><div class="result-success"><i class="bi bi-check-circle me-2"></i>${escHtml(body.message||"QSOs processed successfully")}</div></div>`;
+      resultEl.classList.remove("d-none"); toast("QSO uploaded!", "success");
+      if (currentUploadTab === "json") resetUploadForm();
+    } else {
+      showApiError("upload-result", res.status, "Upload Error", body.error || body.message || body.detail || JSON.stringify(body));
+      toast(`HTTP ${res.status}`, "error");
+    }
+  } catch (err) {
+    showApiError("upload-result", null, "Upload Error", err.message);
+    toast(err.message, "error");
+  } finally { hideSpinner(); setButtonLoading("upload-btn", false); }
+}
+
+function resetUploadForm() {
+  ["u-call","u-comment","u-adif"].forEach(id => { const el = document.getElementById(id); if(el) el.value=""; });
+  document.getElementById("u-mode").value = "";
+  document.getElementById("u-band").value = "";
+  setDefaultUploadDateTime();
+  document.getElementById("upload-result").classList.add("d-none");
+}
+
+// ── FIX: resetAccumulation — called by "Reset & Start Over" button ───
+function resetAccumulation() {
+  _accumulatedQsos  = [];
+  _pendingNextToken = null;
+  _pagesFetched     = 0;
+  window._lastQsos  = [];
+  document.getElementById("dl-next-token").value = "";
+  document.getElementById("download-result").classList.add("d-none");
+  document.getElementById("reset-pages-btn").style.display = "none";
+  if ($.fn.DataTable.isDataTable("#qso-datatable")) {
+    $("#qso-datatable").DataTable().destroy();
+    $("#qso-datatable").empty();
+  }
+  toast("Accumulation cleared. Ready for a fresh download.", "info");
+}
+
+// ── FIX: doDownload — now accumulates QSOs across pages ─────────────
+// isNextPage=true  → uses _pendingNextToken and APPENDS to existing data
+// isNextPage=false → fresh first-page fetch; if filters changed we reset first
+async function doDownload(isNextPage) {
+  const tokens = requireTokens();
+  if (!tokens) return;
+
+  const format    = document.getElementById("dl-format").value;
+  const startDate = document.getElementById("dl-start").value.trim();
+  const endDate   = document.getElementById("dl-end").value.trim();
+  const mode      = document.getElementById("dl-mode").value;
+  const band      = document.getElementById("dl-band").value;
+  const sinceVal  = document.getElementById("dl-since").value;
+  const fetchAll  = document.getElementById("dl-fetch-all").checked;
+
+  // Determine which next-token to use:
+  //   isNextPage=true  → use the stored _pendingNextToken
+  //   isNextPage=false → fresh first-page download, reset accumulation
+  let nextToken;
+  if (isNextPage) {
+    nextToken = _pendingNextToken;
+    if (!nextToken) { toast("No next-page token available.", "warning"); return; }
+  } else {
+    // Fresh download — always reset accumulation
+    _accumulatedQsos  = [];
+    _pendingNextToken = null;
+    _pagesFetched     = 0;
+    nextToken = null;
+  }
+
+  const params = new URLSearchParams({ format });
+  if (startDate)             params.set("qso_start_date", startDate);
+  if (endDate)               params.set("qso_end_date",   endDate);
+  if (mode)                  params.set("qso_mode",       mode);
+  if (band)                  params.set("qso_band",       band);
+  if (sinceVal && !fetchAll) params.set("qso_since",      new Date(sinceVal).toISOString().slice(0,19));
+
+  const reqHeaders = {
+    "Authorization": `Bearer ${tokens.vt}`,
+    "dxqso-station-token": `Bearer ${tokens.st}`
+  };
+  if (nextToken) reqHeaders["X-Next-Token"] = nextToken;
+
+  showSpinner();
+  setButtonLoading("download-btn", true);
+
+  $.ajax({
+    url: `${API_BASE}/logbook/download?${params}`,
+    method: "GET",
+    headers: reqHeaders,
+    success: function(body, status, xhr) {
+      // ── FIX: normalize the header — trim whitespace, treat blank as null ──
+      const rawNext = xhr.getResponseHeader("X-Next-Token");
+      const returnedNext = (rawNext && rawNext.trim()) ? rawNext.trim() : "";
+
+      if (format === "adif") {
+        // ADIF: just download, no accumulation needed
+        const text = typeof body === "string" ? body : JSON.stringify(body);
+        downloadFile(text, "dxqso_logbook.adi", "text/plain");
+        const resultEl = document.getElementById("download-result");
+        resultEl.innerHTML = `<div class="result-panel"><div class="result-success"><i class="bi bi-download me-2"></i>ADIF file downloaded (${text.length.toLocaleString()} bytes)</div></div>`;
+        resultEl.classList.remove("d-none");
+        toast("ADIF downloaded.", "success");
+        return;
+      }
+
+      // ── JSON accumulation ────────────────────────────────────────
+      const pageQsos = body.qsos || [];
+      _pagesFetched++;
+
+      // Append new QSOs to the accumulated array
+      _accumulatedQsos = _accumulatedQsos.concat(pageQsos);
+
+      // ── DEFINITIVE last-page detection ───────────────────────────
+      // The API sends X-Next-Token even on the final page, so we cannot
+      // rely on the token alone. A page with fewer QSOs than the page size
+      // (or zero QSOs) is always the last page.
+      const isLastPage = (pageQsos.length === 0 || pageQsos.length < API_PAGE_SIZE);
+
+      // Only store the next-token if this was NOT the last page
+      _pendingNextToken = isLastPage ? null : (returnedNext || null);
+
+      // Update the hidden field (used internally)
+      document.getElementById("dl-next-token").value = _pendingNextToken || "";
+
+      // Show/hide the "Reset & Start Over" button
+      document.getElementById("reset-pages-btn").style.display =
+        (_accumulatedQsos.length > 0) ? "inline-flex" : "none";
+
+      const resultEl = document.getElementById("download-result");
+      // Pass null (not empty string) so renderQSOTable boolean check is unambiguous
+      renderQSOTable(resultEl, _accumulatedQsos, 200, _pendingNextToken, pageQsos.length, _pagesFetched);
+
+      toast(
+        `Page ${_pagesFetched}: +${pageQsos.length} QSO${pageQsos.length!==1?"s":""} · ${_accumulatedQsos.length.toLocaleString()} total`,
+        "success"
+      );
+    },
+    error: function(xhr) {
+      const body = xhr.responseJSON || {};
+      const errMsg = body.error || body.detail || body.message || xhr.statusText;
+      if (xhr.status === 0) {
+        showApiError("download-result", null, "Download Error", "CORS preflight blocked. Check API Gateway CORS settings.");
+        toast("CORS preflight blocked", "error");
+      } else {
+        showApiError("download-result", xhr.status, "Download Error", errMsg);
+        toast(`HTTP ${xhr.status} — ${errMsg}`, "error");
+      }
+    },
+    complete: function() { hideSpinner(); setButtonLoading("download-btn", false); }
+  });
+}
+
+// ── FIX: renderQSOTable — now shows total+page counts + inline next-page button ──
+function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetched) {
+  window._lastQsos = qsos;
+
+  if ($.fn.DataTable.isDataTable("#qso-datatable")) {
+    $("#qso-datatable").DataTable().destroy();
+    $("#qso-datatable").empty();
+  }
+
+  if (qsos.length === 0) {
+    container.innerHTML = `
+      <div class="result-panel">
+        <div class="result-toolbar">
+          <span class="result-label">QSOs — 0 records</span>
+          <span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)">HTTP ${status}</span>
+        </div>
+        <div style="padding:2rem;text-align:center;color:var(--text-3)">
+          <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
+          No QSOs returned for the selected filters.
+        </div>
+      </div>`;
+    container.classList.remove("d-none");
+    return;
+  }
+
+  const PRIORITY = ["CALL","QSO_DATE","TIME_ON","MODE","BAND","FREQ","RST_SENT","RST_RCVD","GRIDSQUARE","COUNTRY","COMMENT"];
+  const keyMap = new Map();
+  qsos.forEach(q => Object.keys(q).forEach(k => { const u = k.toUpperCase(); if (!keyMap.has(u)) keyMap.set(u, k); }));
+  const priorityPresent = PRIORITY.filter(k => keyMap.has(k));
+  const rest = [...keyMap.keys()].filter(k => !PRIORITY.includes(k)).sort();
+  const allCols = [...priorityPresent, ...rest];
+
+  const prettyLabel = k => k
+    .replace(/_/g," ")
+    .replace(/\bQSO\b/gi,"QSO").replace(/\bRST\b/gi,"RST").replace(/\bDXCC\b/gi,"DXCC")
+    .replace(/\bITUZ\b/gi,"ITUZ").replace(/\bCQZ\b/gi,"CQZ").replace(/\bIOTA\b/gi,"IOTA")
+    .replace(/\bLOTW\b/gi,"LoTW").replace(/\bQSL\b/gi,"QSL")
+    .replace(/\bAPP\b/gi,"App").replace(/\bDXQSO\b/gi,"DxQSO")
+    .toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+
+  const getVal = (q, uKey) => {
+    const orig = keyMap.get(uKey);
+    if (orig && q[orig] !== undefined) return q[orig];
+    if (q[uKey] !== undefined) return q[uKey];
+    return "";
+  };
+
+  const fmtCell = (key, val) => {
+    if (val === null || val === undefined || val === "")
+      return `<span style="color:var(--text-3)">—</span>`;
+    const v = String(val);
+    switch(key) {
+      case "CALL":
+        return `<strong style="color:var(--teal-dark);font-family:var(--mono)">${escHtml(v)}</strong>`;
+      case "QSO_DATE":
+        return `<span style="font-family:var(--mono)">${escHtml(fmtDate(v))}</span>`;
+      case "TIME_ON": case "TIME_OFF":
+        return `<span style="font-family:var(--mono)">${escHtml(fmtTime(v))}</span>`;
+      case "MODE": case "ADIF_MODE":
+        return `<span class="mode-pill">${escHtml(v)}</span>`;
+      case "BAND":
+        return `<span class="band-pill">${escHtml(v)}</span>`;
+      case "FREQ": case "FREQ_RX": case "TX_PWR": case "RX_PWR":
+      case "RST_SENT": case "RST_RCVD": case "GRIDSQUARE": case "MY_GRIDSQUARE":
+        return `<span style="font-family:var(--mono);font-size:.8rem">${escHtml(v)}</span>`;
+      case "LOTW_QSL_SENT": case "LOTW_QSL_RCVD":
+      case "QSL_SENT": case "QSL_RCVD":
+      case "EQSL_QSL_SENT": case "EQSL_QSL_RCVD": {
+        const color = v==="Y" ? "var(--green)" : v==="N" ? "var(--red)" : "var(--text-3)";
+        return `<span style="font-family:var(--mono);color:${color};font-weight:700">${escHtml(v)}</span>`;
+      }
+      default:
+        return `<span style="font-size:.8rem">${escHtml(v)}</span>`;
+    }
+  };
+
+  const thead = allCols.map(k => `<th title="${escHtml(k)}">${escHtml(prettyLabel(k))}</th>`).join("");
+  const tbody = qsos.map(q => {
+    const cells = allCols.map(k => `<td>${fmtCell(k, getVal(q, k))}</td>`).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
+
+  // ── FIX: page-counter label ──────────────────────────────────────
+  const pageLabel = (pagesFetched && pageCount !== undefined)
+    ? `${qsos.length.toLocaleString()} QSO${qsos.length!==1?"s":""}&nbsp;·&nbsp;${allCols.length} cols&nbsp;·&nbsp;<span style="color:var(--amber)">page ${pagesFetched}${pageCount !== undefined ? ` (+${pageCount} new)` : ""}</span>`
+    : `${qsos.length.toLocaleString()} QSO${qsos.length!==1?"s":""}&nbsp;·&nbsp;${allCols.length} cols`;
+
+  // ── FIX: next-page bar rendered INSIDE the panel ─────────────────
+  // nextToken is already normalized to null when no more pages exist
+  const hasMorePages = !!(nextToken && nextToken.trim());
+  const nextPageBar = hasMorePages ? `
+    <div class="next-page-bar">
+      <i class="bi bi-arrow-right-circle"></i>
+      <span>More pages available — ${qsos.length.toLocaleString()} loaded so far.</span>
+      <button class="btn-load-next" id="btn-load-next-inline" onclick="doDownload(true)">
+        <i class="bi bi-cloud-download"></i> Load Next Page
+      </button>
+      <button class="btn-reset-pages" onclick="resetAccumulation()">
+        <i class="bi bi-x"></i> Reset
+      </button>
+    </div>` : `
+    <div style="padding:.5rem 1rem;background:var(--green-bg);border-top:1px solid var(--green-border);font-family:var(--mono);font-size:.75rem;color:var(--green);display:flex;align-items:center;gap:.5rem">
+      <i class="bi bi-check-circle"></i>
+      All pages loaded — ${qsos.length.toLocaleString()} QSO${qsos.length!==1?"s":""} total.
+    </div>`;
+
+  container.innerHTML = `
+    <div class="result-panel">
+      <div class="result-toolbar">
+        <span class="result-label">
+          <i class="bi bi-table me-1"></i>${pageLabel}
+        </span>
+        <span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)">HTTP ${status}</span>
+      </div>
+      <div style="padding:.75rem 1rem 0">
+        <table id="qso-datatable" class="table table-sm table-hover w-100" style="font-size:.82rem">
+          <thead><tr>${thead}</tr></thead>
+          <tbody>${tbody}</tbody>
+        </table>
+      </div>
+      ${nextPageBar}
+    </div>`;
+  container.classList.remove("d-none");
+
+  const dateColIdx = allCols.indexOf("QSO_DATE");
+
+  $("#qso-datatable").DataTable({
+    pageLength: 25,
+    scrollX: true,
+    scrollCollapse: true,
+    lengthMenu: [[10,25,50,100,-1],[10,25,50,100,"All"]],
+    order: [[dateColIdx >= 0 ? dateColIdx : 0, "desc"]],
+    dom: "<'row align-items-center mb-2'<'col-sm-7'B><'col-sm-5 text-end'f>>" +
+         "<'row'<'col-12'tr>>" +
+         "<'row mt-2 align-items-center'<'col-sm-5'i><'col-sm-7'p>>",
+    buttons: [
+      { extend:"csv",   text:'<i class="bi bi-filetype-csv me-1"></i>CSV',            className:"btn btn-sm", filename:"dxqso_logbook" },
+      { extend:"excel", text:'<i class="bi bi-file-earmark-excel me-1"></i>Excel',    className:"btn btn-sm", filename:"dxqso_logbook" },
+      { extend:"print", text:'<i class="bi bi-printer me-1"></i>Print',               className:"btn btn-sm" },
+      {
+        text: '<i class="bi bi-braces me-1"></i>Copy JSON',
+        className: "btn btn-sm",
+        action: function() {
+          navigator.clipboard.writeText(JSON.stringify(window._lastQsos||[],null,2))
+            .then(() => toast("JSON copied to clipboard.","info"));
+        }
+      },
+      {
+        extend: "colvis",
+        text: '<i class="bi bi-layout-three-columns me-1"></i>Columns',
+        className: "btn btn-sm"
+      }
+    ],
+    language: {
+      search: "",
+      searchPlaceholder: "Search callsign, mode, band…",
+      emptyTable: "No QSOs returned.",
+      info: "Showing _START_–_END_ of _TOTAL_ QSOs",
+      paginate: { previous: "‹", next: "›" }
+    }
+  });
+}
+
+function clearDownloadFilters() {
+  ["dl-start","dl-end","dl-next-token"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("dl-format").value  = "json";
+  document.getElementById("dl-mode").value    = "";
+  document.getElementById("dl-band").value    = "";
+  document.getElementById("dl-fetch-all").checked = false;
+  document.getElementById("dl-since").disabled    = false;
+  setDefaultDownloadSince();
+  resetAccumulation();
+}
+
+function switchCodeTab(lang, el) {
+  document.querySelectorAll(".lang-item").forEach(i => i.classList.remove("active"));
+  el.classList.add("active");
+  ["csharp","cpp","swift","python","curl"].forEach(l => {
+    const b = document.getElementById(`code-${l}`);
+    if (b) b.classList.toggle("d-none", l !== lang);
+  });
+}
+
+function initSectionNav() {
+  const sections = ["section-keys","section-station","section-upload","section-download","section-code"];
+  const navLinks = document.querySelectorAll(".section-nav .nav-link");
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove("active"));
+        const link = document.querySelector(`.section-nav a[href="#${entry.target.id}"]`);
+        if (link) link.classList.add("active");
+      }
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(id => { const el = document.getElementById(id); if(el) observer.observe(el); });
+}
+
+function showSpinner() { document.getElementById("spinner").classList.remove("d-none"); }
+function hideSpinner() { document.getElementById("spinner").classList.add("d-none"); }
+
+function setButtonLoading(id, loading) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) { btn.dataset.orig = btn.innerHTML; btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Loading…`; }
+  else { btn.innerHTML = btn.dataset.orig || btn.innerHTML; }
+}
+
+function toast(msg, type="info") {
+  const stack = document.getElementById("toast-stack");
+  const el = document.createElement("div");
+  const icon = {success:"check-circle",error:"x-circle",info:"info-circle",warning:"exclamation-triangle"}[type]||"info-circle";
+  el.className = `my-toast ${type}`;
+  el.innerHTML = `<i class="bi bi-${icon}"></i><span>${escHtml(msg)}</span>`;
+  stack.appendChild(el);
+  setTimeout(() => { el.style.opacity="0"; el.style.transition="opacity .3s"; setTimeout(()=>el.remove(),300); }, 3500);
+}
+
+function showApiError(containerId, status, label, detail) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = `
+    <div class="result-panel">
+      <div class="result-toolbar">
+        <span class="result-label">${escHtml(label)}</span>
+        <span style="font-family:var(--mono);font-size:.72rem;color:var(--red)">${!status?"Network Error":"HTTP "+status}</span>
+      </div>
+      <div class="result-error"><i class="bi bi-x-circle me-2"></i>${escHtml(detail)}</div>
+    </div>`;
+  el.classList.remove("d-none");
+}
+
+function downloadFile(content, filename, mime) {
+  const blob = new Blob([content], {type:mime});
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement("a"), {href:url,download:filename});
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function escHtml(str) {
+  return String(str??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function fmtDate(d) { if(!d||d.length<8) return d||"—"; return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`; }
+function fmtTime(t) { if(!t||t.length<4) return t||"—"; return `${t.slice(0,2)}:${t.slice(2,4)}${t.length>=6?":"+t.slice(4,6):""}`;  }
+
+async function doCorsTest() {
+  const tokens = requireTokens();
+  if (!tokens) return;
+  const el = document.getElementById("cors-result");
+  el.innerHTML = `<div class="result-panel"><div class="result-body">Sending OPTIONS preflight to api.dxqso.net...</div></div>`;
+  el.classList.remove("d-none");
+  try {
+    const res = await fetch(`${API_BASE}/logbook/download?format=json&limit=1`, {
+      headers: { "Authorization": `Bearer ${tokens.vt}`, "dxqso-station-token": `Bearer ${tokens.st}` }
+    });
+    const corsHeaders = ["access-control-allow-origin","access-control-allow-headers","access-control-allow-methods","access-control-expose-headers"];
+    let rows = corsHeaders.map(h => {
+      const val = res.headers.get(h);
+      return `<tr>
+        <td style="color:${val?"var(--green)":"var(--red)"};font-weight:700;padding:.3rem .6rem">${val?"✓":"✗"}</td>
+        <td style="padding:.3rem .6rem;color:var(--teal-dark)">${h}</td>
+        <td style="padding:.3rem .6rem;color:var(--text-2);word-break:break-all">${escHtml(val||"(not present)")}</td>
+      </tr>`;
+    }).join("");
+    el.innerHTML = `
+      <div class="result-panel">
+        <div class="result-toolbar">
+          <span class="result-label">CORS Headers — HTTP ${res.status}</span>
+          <span style="font-family:var(--mono);font-size:.72rem;color:${res.ok?"var(--green)":"var(--red)"}">${res.ok?"Request succeeded":"Request failed"}</span>
+        </div>
+        <div style="padding:.75rem 1rem;background:var(--bg-card-2)">
+          <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.78rem">${rows}</table>
+        </div>
+      </div>`;
+  } catch (err) {
+    el.innerHTML = `<div class="result-panel"><div class="result-error"><i class="bi bi-x-octagon me-2"></i><strong>Preflight blocked by browser</strong><br><br>OPTIONS response is missing required CORS headers.</div></div>`;
+    toast("CORS preflight blocked","error");
+  }
+}
+
+window._adifFileContent = null;
+
+function handleAdifFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!["adi","adif"].includes(ext)) {
+    toast("Only .adi or .adif files are allowed.", "error");
+    input.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    window._adifFileContent = e.target.result;
+    document.getElementById("adif-drop-content").classList.add("d-none");
+    document.getElementById("adif-file-chosen").classList.remove("d-none");
+    document.getElementById("adif-file-name").textContent = file.name;
+    document.getElementById("adif-file-meta").textContent = `${(file.size / 1024).toFixed(1)} KB`;
+    document.getElementById("adif-drop-zone").classList.add("has-file");
+  };
+  reader.readAsText(file);
+}
+
+function clearAdifFile(e) {
+  e.stopPropagation();
+  window._adifFileContent = null;
+  document.getElementById("adif-file-input").value = "";
+  document.getElementById("adif-drop-content").classList.remove("d-none");
+  document.getElementById("adif-file-chosen").classList.add("d-none");
+  document.getElementById("adif-drop-zone").classList.remove("has-file");
+}
+
+const _origSwitchUploadTab = switchUploadTab;
+switchUploadTab = function(tab, el) {
+  _origSwitchUploadTab(tab, el);
+  if (tab !== "adif") clearAdifFile({ stopPropagation: () => {} });
+};
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll("pre code").forEach(function(el) { hljs.highlightElement(el); });
+  });
+</script>
+</body>
+</html>
