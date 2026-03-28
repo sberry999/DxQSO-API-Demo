@@ -493,9 +493,9 @@
             <div class="d-flex align-items-center gap-2 mb-1">
               <div class="card-title mb-0">Station Info</div>
               <span class="method-badge method-get">GET</span>
-              <code class="endpoint-url">https://dxqso.net/tqsl/api/station/info/</code>
+              <code class="endpoint-url">https://api.dxqso.net/logbook/station/station_info/</code>
             </div>
-            <div class="card-subtitle">Fetch station details for the authenticated user — uses Station Token only (Django API)</div>
+            <div class="card-subtitle">Fetch station details for the authenticated user</div>
           </div>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -1033,12 +1033,17 @@ function renderStationResult(d) {
 
 async function doStationInfo() {
   const { st } = getTokens();
+  const tokens = requireTokens();
+  const reqHeaders = {
+    "Authorization": `Bearer ${tokens.vt}`,
+    "dxqso-station-token": `Bearer ${tokens.st}`
+  };
   if (!st) { toast("Please enter your Station Token first.", "error"); return; }
   showSpinner(); setButtonLoading("station-btn", true);
   $.ajax({
-    url: `${DJANGO_BASE}/tqsl/api/station/info/`,
+    url: `${API_BASE}/logbook/station/station_info/`,
     method: "GET",
-    headers: { "Authorization": `Bearer ${st}` },
+    headers: reqHeaders,
     success: function(d) {
       d._cached_at = new Date().toISOString();
       localStorage.setItem("dxqso_station_data", JSON.stringify(d));
