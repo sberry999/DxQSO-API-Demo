@@ -9,6 +9,6 @@ Users may upload their own ADIF logbooks through the DxQSO website, mobile appli
 
 The DxQSO mobile app provides instant access to your entire logbook, real time QSL alerts for confirmations and DXCC and other achievements and allows you to upload QSOs directly from your mobile via ADIF upload or directly from other mobile apps through the N1MM listener.
 
-This demo website demonstrates the DxQSO client API which can be used by ham software applications to directly upload ham logbook data, view DxQSO station info and download QSOs. 
+**This demo website demonstrates the DxQSO client API which can be used by ham software applications to directly upload ham logbook data, view DxQSO station info and download QSOs.** 
 
-This website is running live on **https://demo.dxqso.net.**
+This website is running live on **https://demo.dxqso.net**.
