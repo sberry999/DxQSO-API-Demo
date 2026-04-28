@@ -1,14 +1,14 @@
 # DxQSO-API-Demo
-DxQSO is a ham radio cloud logbook repository which acts as a QSO clearinghouse interfacing to LoTW and QRZ as well as the DxQSO website and DxQSO mobile application (Android and IOS).
+DxQSO is a ham radio cloud logbook repository which acts as a QSO clearinghouse integrating logbook data from multiple ham radio logbook applications as well as to/from LoTW and QRZ.com and the the DxQSO website and DxQSO mobile application (Android and IOS).
 
-DxQSO provides a unified view of all logbooks from different sources as well as email and mobile QSL Alerts for new LOTW State, DXCC and Grid square confirmations. It also includes DxSocial, a social media site built for teams/clubs to share online information, blogs, files and real time operating activity and achievements. 
+Through a high speed serverless architecture built on AWS. DxQSO provides a unified view of all logbooks (with a modern API) as well as email and mobile push alerts for new QSLs as well as new State, DXCC and Grid square confirmations. It also includes DxSocial, a social media site built for teams/clubs to share realtime operating QSO data and QSL achievements as well as club based discussions, blogs, files and web links.
 
-The DX-TQSL Windows/Mac application (replaces TQSL and provides cloud based backup and certificate management) provides QSO upload capability to DxQSO using existing logbook applications. DX-TQSL can upload to both DxQSO and LoTW simulatenously or only to DxQSO if the user is not an LoTW user.
+The DX-TQSL Windows/Mac application provides realtime DxQSO logbook integration for users whether they use LoTW or not. As a replacement for TQSL, it provides cloud based certificates and stations and backs up all local TQSL information and uploads to either both LoTW and DxQSO or DxQSO. 
 
-Users may upload their own ADIF logbooks through the DxQSO website, mobile application or DX-TQSL and maintain all detailed data. Logbook records are automatically converted into target logbook application formats (N1MM, HRD, MacLogger, Polo, etc) when downloaded.
+Users may upload their own ADIF logbooks through the DxQSO website, mobile application or DX-TQSL and maintain all detailed logbook data. Logbook records are automatically converted into target logbook application formats (N1MM, HRD, MacLogger, Polo, etc) when downloaded.
 
-The DxQSO mobile app provides real time access to your entire logbook, real time QSL alerts for confirmations and DXCC and other achievements and allows you to upload QSOs directly from your mobile via ADIF upload or through the N1MM listener.
+The DxQSO mobile app provides instant access to your entire logbook, real time QSL alerts for confirmations and DXCC and other achievements and allows you to upload QSOs directly from your mobile via ADIF upload or directly from other mobile apps through the N1MM listener.
 
-This demo website demonstrates the DxQSO client API which can be used by ham software applications to directly upload/download QSO activity. View DxQSO station info and query and upload QSOs. 
+This demo website demonstrates the DxQSO client API which can be used by ham software applications to directly upload ham logbook data, view DxQSO station info and download QSOs. 
 
-This website is running live on https://demo.dxqso.net.
+This website is running live on **https://demo.dxqso.net.**
