@@ -14,3 +14,31 @@ The DxQSO mobile app provides instant access to your entire logbook, real time l
 This website is running live on **https://demo.dxqso.net**.
 
 You must have a Vendor Key (Provided by DX Development) and Station Key (provided to DxQSO users for each station they have setup) in order to connect to your DxQSO account data through this demo website.
+
+---
+
+## Repository & deployment
+
+This repository **is** the site served at **https://demo.dxqso.net** — deployed automatically by
+Vercel on every push to `main` (no build step; it is static HTML served from the repo root).
+
+- `index.html` — the entire demo (self-contained).
+- `vendor/<host>/<path>` — third-party libraries (Bootstrap, jQuery, DataTables, highlight.js,
+  JSZip, fonts) **vendored into the repo**. The demo asks developers to paste a **live production
+  bearer token** into a form, so it must not load executable code from third-party CDNs — a
+  compromise at any CDN could read that token. The page makes **zero** off-origin requests.
+- `assets/` — DxQSO's own images (logo).
+
+### Running it locally
+
+It is plain static HTML — serve the repo root with any static server:
+
+```bash
+python3 -m http.server 8000     # then open http://localhost:8000
+```
+
+### Editing
+
+Edit `index.html` and push to `main`; Vercel redeploys. Keep libraries **vendored** — do not
+reintroduce a CDN `<script src>`. To update a library, replace the file under `vendor/<host>/<path>`
+so the relative `url()` references inside the CSS keep resolving.

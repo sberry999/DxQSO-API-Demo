@@ -6,30 +6,30 @@
   <title>DxQSO API Demo — Cloud QSO Repository</title>
 
   <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/vendor/cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="/vendor/cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/swift.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+  <link href="/vendor/fonts.googleapis.com/fonts.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/vendor/cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="/vendor/cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="/vendor/cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+  <script src="/vendor/cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+  <script src="/vendor/cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/swift.min.js"></script>
+  <script src="/vendor/cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="/vendor/cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
   <!-- DataTables -->
-  <link  rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" />
-  <link  rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" />
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.colVis.min.js"></script>
+  <link  rel="stylesheet" href="/vendor/cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" />
+  <link  rel="stylesheet" href="/vendor/cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" />
+  <script src="/vendor/code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="/vendor/cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+  <script src="/vendor/cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+  <script src="/vendor/cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+  <script src="/vendor/cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+  <script src="/vendor/cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="/vendor/cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+  <script src="/vendor/cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+  <script src="/vendor/cdn.datatables.net/buttons/3.0.2/js/buttons.colVis.min.js"></script>
 
   <style>
     :root {
@@ -384,7 +384,7 @@
   <div class="container">
     <div class="d-flex align-items-center gap-3">
       <a href="#" class="nav-logo">
-        <img src="https://dsoddbbo8xw54.cloudfront.net/assets/img/Final.png" alt="DxQSO" class="nav-logo-img" />
+        <img src="/assets/dxqso-logo.png" alt="DxQSO" class="nav-logo-img" />
       </a>
       <span class="nav-badge">API Demo v1.0</span>
       <div class="ms-auto d-flex gap-2">
@@ -457,7 +457,7 @@
         </div>
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label">Vendor Token <span class="required">*</span><div class="form-hint">Provided by DxQSO — email <a href="/cdn-cgi/l/email-protection#364543464659444276524e47455918594451"><span class="__cf_email__" data-cfemail="671412171708151327031f16140849081500">[email&#160;protected]</span></a></div></label>
+            <label class="form-label">Vendor Token <span class="required">*</span><div class="form-hint">Provided by DxQSO — email <a href="mailto:support@dxqso.org">support@dxqso.org</a></div></label>
             <div class="input-group">
               <input type="password" id="vendor-token" class="form-control form-control-sm is-token" placeholder="Bearer eyJ..." autocomplete="off" />
               <button class="btn-eye" id="eye-vendor" onclick="toggleField('vendor-token','eye-vendor')"><i class="bi bi-eye"></i></button>
@@ -517,6 +517,17 @@
             <div class="card-subtitle">Push one QSO record to the user's DxQSO cloud repository (JSON format)</div>
           </div>
         </div>
+        <div class="key-info mb-3 mt-3">
+          <strong>Mandatory fields for every QSO upload:</strong><br>
+          <code>call</code> — Callsign of the contacted station (e.g. <code>N1EZ</code>)<br>
+          <code>band</code> — Amateur radio band (e.g. <code>40M</code>, <code>20M</code>)<br>
+          <code>mode</code> — Operating mode (e.g. <code>FT8</code>, <code>CW</code>, <code>SSB</code>)<br>
+          <code>qso_date</code> — Date in <code>YYYYMMDD</code> format (e.g. <code>20240802</code>)<br>
+          <code>time_on</code> — UTC time in <code>HHMMSS</code> or <code>HHMM</code> format (e.g. <code>015115</code>)<br>
+          <br>
+        
+        </div>
+
         <ul class="nav code-tabs mt-3 mb-3" id="upload-format-tabs">
           <li class="nav-item"><a class="nav-link active" href="#" onclick="switchUploadTab('json',this); return false;"><i class="bi bi-braces me-1"></i>JSON</a></li>
           <li class="nav-item"><a class="nav-link" href="#" onclick="switchUploadTab('adif',this); return false;"><i class="bi bi-file-earmark-text me-1"></i>ADIF (raw text)</a></li>
@@ -861,7 +872,7 @@ curl -s "https://api.dxqso.net/logbook/download?format=adif" \
   <div class="container">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
       <div>
-        <img src="https://dsoddbbo8xw54.cloudfront.net/assets/img/Final.png" alt="DxQSO" class="footer-logo-img" />
+        <img src="/assets/dxqso-logo.png" alt="DxQSO" class="footer-logo-img" />
         <div style="font-size:.82rem;color:rgba(255,255,255,.8);margin-top:.35rem">Cloud QSO Repository API Demo</div>
       </div>
       <div class="d-flex gap-3">
@@ -876,7 +887,7 @@ curl -s "https://api.dxqso.net/logbook/download?format=adif" \
 <div id="toast-stack" class="toast-stack"></div>
 <div id="spinner" class="spinner-overlay d-none"><div class="spin-ring"></div></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/vendor/cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 "use strict";
 
