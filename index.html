@@ -654,13 +654,19 @@ public class DxqsoClient {
         if (nextToken != null) req.Headers.Add("X-Next-Token", nextToken);
     }
 
-    public async Task UploadQsoAsync(string call, string band, string mode, string date, string timeOn) {
+    // Returns the DxQSO qso_id for the uploaded record — the stable, immutable
+    // handle to store so you can reference (or later update) this QSO.
+    public async Task&lt;string?&gt; UploadQsoAsync(string call, string band, string mode, string date, string timeOn) {
         var payload = JsonSerializer.Serialize(new { qsos = new[] { new { call, band, mode, qso_date = date, time_on = timeOn } } });
         var req = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}/upload") {
             Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
         };
         AddAuth(req);
-        (await _http.SendAsync(req)).EnsureSuccessStatusCode();
+        var res = await _http.SendAsync(req); res.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+        var r0 = doc.RootElement.GetProperty("results")[0];  // action: inserted | updated | rejected
+        return r0.GetProperty("action").GetString() == "rejected"
+            ? null : r0.GetProperty("qso_id").GetString();
     }
 
     public async Task&lt;List&lt;string&gt;&gt; DownloadLogbookAsync(string? since = null) {
@@ -705,8 +711,10 @@ public:
     }
     ~DxqsoClient() { curl_global_cleanup(); }
 
-    void UploadQso(const std::string& call, const std::string& band, const std::string& mode,
-                   const std::string& date, const std::string& timeOn) {
+    // Returns the DxQSO qso_id for the uploaded record — the stable, immutable
+    // handle to store so you can reference (or later update) this QSO.
+    std::string UploadQso(const std::string& call, const std::string& band, const std::string& mode,
+                          const std::string& date, const std::string& timeOn) {
         json body = { {"qsos", {{ {"call",call},{"band",band},{"mode",mode},{"qso_date",date},{"time_on",timeOn} }}} };
         std::string payload = body.dump();
         CURL* curl = curl_easy_init(); std::string resp;
@@ -718,6 +726,8 @@ public:
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp);
         curl_easy_perform(curl);
         curl_slist_free_all(hdrs); curl_easy_cleanup(curl);
+        auto r0 = json::parse(resp)["results"][0];  // action: inserted | updated | rejected
+        return r0["action"] == "rejected" ? "" : r0["qso_id"].get&lt;std::string&gt;();
     }
 };</code></pre></div>
 
@@ -741,15 +751,20 @@ class DxqsoClient {
         if let t = nextToken { request.setValue(t, forHTTPHeaderField: "X-Next-Token") }
     }
 
-    func uploadQso(call: String, band: String, mode: String, date: String, timeOn: String) async throws {
+    // Returns the DxQSO qso_id for the uploaded record — the stable, immutable
+    // handle to store so you can reference (or later update) this QSO.
+    func uploadQso(call: String, band: String, mode: String, date: String, timeOn: String) async throws -> String? {
         let payload: [String: Any] = ["qsos": [["call": call, "band": band, "mode": mode, "qso_date": date, "time_on": timeOn]]]
         var req = URLRequest(url: URL(string: "\(apiBase)/upload")!)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         addAuth(to: &req)
-        let (_, response) = try await session.data(for: req)
+        let (data, response) = try await session.data(for: req)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+        let body = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let r0 = (body?["results"] as? [[String: Any]])?.first   // action: inserted | updated | rejected
+        return (r0?["action"] as? String) == "rejected" ? nil : r0?["qso_id"] as? String
     }
 
     func downloadLogbook(since: String? = nil) async throws -> [[String: Any]] {
@@ -792,7 +807,12 @@ class DxqsoClient:
     def upload_qso(self, call, band, mode, qso_date, time_on, freq=None):
         qso = {"call": call, "band": band, "mode": mode, "qso_date": qso_date, "time_on": time_on}
         if freq: qso["freq"] = freq
-        self._session.post(f"{self.API_BASE}/upload", headers=self._auth(), json={"qsos": [qso]}).raise_for_status()
+        r = self._session.post(f"{self.API_BASE}/upload", headers=self._auth(), json={"qsos": [qso]})
+        r.raise_for_status()
+        # Each result carries action (inserted|updated|rejected) + qso_id — the stable,
+        # immutable handle. Store it to reference (or later update) this QSO.
+        result = r.json()["results"][0]
+        return None if result["action"] == "rejected" else result["qso_id"]
 
     def upload_adif_file(self, file_path: str):
         with open(file_path, "r", encoding="utf-8") as f: content = f.read()
@@ -807,6 +827,7 @@ class DxqsoClient:
             if band:  params["qso_band"]  = band
             r = self._session.get(f"{self.API_BASE}/logbook/download", headers=self._auth(next_token), params=params)
             r.raise_for_status()
+            # Each QSO includes "qso_id" — the stable record handle (plus its natural fields).
             all_qsos += r.json().get("qsos", [])
             next_token = r.headers.get("X-Next-Token")
             if not next_token: break
@@ -822,6 +843,11 @@ curl -s -X POST https://api.dxqso.net/upload \
      -H "dxqso-station-token: Bearer $STATION" \
      -H "Content-Type: application/json" \
      -d '{"qsos": [{"call":"VK2ABC","band":"40m","mode":"FT8","qso_date":"20240802","time_on":"015115"}]}'
+# → 200 {"message":"QSOs processed","inserted":1,"updated":0,"rejected":0,
+#        "results":[{"action":"inserted","qso_id":"898193a7-1e7b-4610-a21e-2beda444f661",
+#                    "call":"VK2ABC","qso_date":"20240802","time_on":"015115","band":"40m"}]}
+#   Store results[].qso_id — the stable, immutable handle to reference/update the QSO later.
+#   (action is inserted | updated | rejected; call/date/time/band are echoed for correlation.)
 
 # Upload an ADIF file
 curl -s -X POST https://api.dxqso.net/upload \
@@ -830,7 +856,7 @@ curl -s -X POST https://api.dxqso.net/upload \
      -H "Content-Type: text/plain" \
      --data-binary @my_log.adi
 
-# Download as JSON
+# Download as JSON  (each QSO includes "qso_id" — the stable record handle)
 curl -s "https://api.dxqso.net/logbook/download?format=json" \
      -H "Authorization: Bearer $VENDOR" \
      -H "dxqso-station-token: Bearer $STATION"
