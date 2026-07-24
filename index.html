@@ -665,13 +665,19 @@ public class DxqsoClient {
         if (nextToken != null) req.Headers.Add("X-Next-Token", nextToken);
     }
 
-    public async Task UploadQsoAsync(string call, string band, string mode, string date, string timeOn) {
+    // Returns the DxQSO qso_id for the uploaded record — the stable, immutable
+    // handle to store so you can reference (or later update) this QSO.
+    public async Task&lt;string?&gt; UploadQsoAsync(string call, string band, string mode, string date, string timeOn) {
         var payload = JsonSerializer.Serialize(new { qsos = new[] { new { call, band, mode, qso_date = date, time_on = timeOn } } });
         var req = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}/upload") {
             Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
         };
         AddAuth(req);
-        (await _http.SendAsync(req)).EnsureSuccessStatusCode();
+        var res = await _http.SendAsync(req); res.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+        var r0 = doc.RootElement.GetProperty("results")[0];  // action: inserted | updated | rejected
+        return r0.GetProperty("action").GetString() == "rejected"
+            ? null : r0.GetProperty("qso_id").GetString();
     }
 
     public async Task&lt;List&lt;string&gt;&gt; DownloadLogbookAsync(string? since = null) {
@@ -716,8 +722,10 @@ public:
     }
     ~DxqsoClient() { curl_global_cleanup(); }
 
-    void UploadQso(const std::string& call, const std::string& band, const std::string& mode,
-                   const std::string& date, const std::string& timeOn) {
+    // Returns the DxQSO qso_id for the uploaded record — the stable, immutable
+    // handle to store so you can reference (or later update) this QSO.
+    std::string UploadQso(const std::string& call, const std::string& band, const std::string& mode,
+                          const std::string& date, const std::string& timeOn) {
         json body = { {"qsos", {{ {"call",call},{"band",band},{"mode",mode},{"qso_date",date},{"time_on",timeOn} }}} };
         std::string payload = body.dump();
         CURL* curl = curl_easy_init(); std::string resp;
@@ -729,6 +737,8 @@ public:
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp);
         curl_easy_perform(curl);
         curl_slist_free_all(hdrs); curl_easy_cleanup(curl);
+        auto r0 = json::parse(resp)["results"][0];  // action: inserted | updated | rejected
+        return r0["action"] == "rejected" ? "" : r0["qso_id"].get&lt;std::string&gt;();
     }
 };</code></pre></div>
 
@@ -752,15 +762,20 @@ class DxqsoClient {
         if let t = nextToken { request.setValue(t, forHTTPHeaderField: "X-Next-Token") }
     }
 
-    func uploadQso(call: String, band: String, mode: String, date: String, timeOn: String) async throws {
+    // Returns the DxQSO qso_id for the uploaded record — the stable, immutable
+    // handle to store so you can reference (or later update) this QSO.
+    func uploadQso(call: String, band: String, mode: String, date: String, timeOn: String) async throws -> String? {
         let payload: [String: Any] = ["qsos": [["call": call, "band": band, "mode": mode, "qso_date": date, "time_on": timeOn]]]
         var req = URLRequest(url: URL(string: "\(apiBase)/upload")!)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         addAuth(to: &req)
-        let (_, response) = try await session.data(for: req)
+        let (data, response) = try await session.data(for: req)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+        let body = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let r0 = (body?["results"] as? [[String: Any]])?.first   // action: inserted | updated | rejected
+        return (r0?["action"] as? String) == "rejected" ? nil : r0?["qso_id"] as? String
     }
 
     func downloadLogbook(since: String? = nil) async throws -> [[String: Any]] {
@@ -803,7 +818,12 @@ class DxqsoClient:
     def upload_qso(self, call, band, mode, qso_date, time_on, freq=None):
         qso = {"call": call, "band": band, "mode": mode, "qso_date": qso_date, "time_on": time_on}
         if freq: qso["freq"] = freq
-        self._session.post(f"{self.API_BASE}/upload", headers=self._auth(), json={"qsos": [qso]}).raise_for_status()
+        r = self._session.post(f"{self.API_BASE}/upload", headers=self._auth(), json={"qsos": [qso]})
+        r.raise_for_status()
+        # Each result carries action (inserted|updated|rejected) + qso_id — the stable,
+        # immutable handle. Store it to reference (or later update) this QSO.
+        result = r.json()["results"][0]
+        return None if result["action"] == "rejected" else result["qso_id"]
 
     def upload_adif_file(self, file_path: str):
         with open(file_path, "r", encoding="utf-8") as f: content = f.read()
@@ -818,6 +838,7 @@ class DxqsoClient:
             if band:  params["qso_band"]  = band
             r = self._session.get(f"{self.API_BASE}/logbook/download", headers=self._auth(next_token), params=params)
             r.raise_for_status()
+            # Each QSO includes "qso_id" — the stable record handle (plus its natural fields).
             all_qsos += r.json().get("qsos", [])
             next_token = r.headers.get("X-Next-Token")
             if not next_token: break
@@ -833,6 +854,11 @@ curl -s -X POST https://api.dxqso.net/upload \
      -H "dxqso-station-token: Bearer $STATION" \
      -H "Content-Type: application/json" \
      -d '{"qsos": [{"call":"VK2ABC","band":"40m","mode":"FT8","qso_date":"20240802","time_on":"015115"}]}'
+# → 200 {"message":"QSOs processed","inserted":1,"updated":0,"rejected":0,
+#        "results":[{"action":"inserted","qso_id":"898193a7-1e7b-4610-a21e-2beda444f661",
+#                    "call":"VK2ABC","qso_date":"20240802","time_on":"015115","band":"40m"}]}
+#   Store results[].qso_id — the stable, immutable handle to reference/update the QSO later.
+#   (action is inserted | updated | rejected; call/date/time/band are echoed for correlation.)
 
 # Upload an ADIF file
 curl -s -X POST https://api.dxqso.net/upload \
@@ -841,7 +867,7 @@ curl -s -X POST https://api.dxqso.net/upload \
      -H "Content-Type: text/plain" \
      --data-binary @my_log.adi
 
-# Download as JSON
+# Download as JSON  (each QSO includes "qso_id" — the stable record handle)
 curl -s "https://api.dxqso.net/logbook/download?format=json" \
      -H "Authorization: Bearer $VENDOR" \
      -H "dxqso-station-token: Bearer $STATION"
@@ -1095,6 +1121,45 @@ function toggleFetchAll(cb) {
   if (cb.checked) el.value = "";
 }
 
+function renderUploadResult(res, body) {
+  const head = `<div class="result-toolbar"><span class="result-label"><i class="bi bi-cloud-check me-1"></i>Upload Response</span><span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)">HTTP ${res.status}</span></div>`;
+
+  // JSON path returns per-record results; ADIF path returns only a message.
+  if (!Array.isArray(body.results)) {
+    return `<div class="result-panel">${head}<div class="result-success"><i class="bi bi-check-circle me-2"></i>${escHtml(body.message||"QSOs processed successfully")}</div></div>`;
+  }
+
+  const chip = (label, n, color) => `<span class="chip" style="border-color:${color};color:${color}"><strong>${n}</strong>&nbsp;${label}</span>`;
+  const counts = `<div style="padding:.6rem 1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+    ${chip("inserted", body.inserted||0, "var(--green)")}
+    ${chip("updated",  body.updated||0,  "var(--amber)")}
+    ${chip("rejected", body.rejected||0, "var(--red)")}</div>`;
+
+  const rows = body.results.map(r => {
+    const color = r.action==="inserted" ? "var(--green)" : r.action==="updated" ? "var(--amber)" : "var(--red)";
+    const qid = r.qso_id
+      ? `<span style="font-family:var(--mono);font-size:.72rem;color:var(--teal-dark)" title="${escHtml(r.qso_id)}">${escHtml(r.qso_id)}</span>`
+      : `<span style="color:var(--text-3)">—</span>`;
+    const key = [r.call, r.qso_date, r.time_on, r.band].filter(Boolean).map(escHtml).join(" · ");
+    const reason = r.reason ? `<div style="font-size:.68rem;color:var(--red);margin-top:.15rem">${escHtml(r.reason)}</div>` : "";
+    return `<tr>
+      <td><span style="font-family:var(--mono);font-weight:700;text-transform:uppercase;font-size:.7rem;color:${color}">${escHtml(r.action)}</span></td>
+      <td>${qid}</td>
+      <td><span style="font-family:var(--mono);font-size:.74rem">${key}</span>${reason}</td>
+    </tr>`;
+  }).join("");
+
+  const note = `<div style="padding:.4rem 1rem;font-size:.7rem;color:var(--text-3);border-top:1px solid var(--border)"><i class="bi bi-fingerprint me-1"></i><strong>qso_id</strong> is the stable, immutable handle for each record — store it to reference or update a QSO later. The call/date/time/band are echoed only to match a result to the record you sent.</div>`;
+
+  return `<div class="result-panel">${head}
+    <div class="result-success"><i class="bi bi-check-circle me-2"></i>${escHtml(body.message||"QSOs processed")}</div>
+    ${counts}
+    <div style="padding:0 1rem .5rem"><table class="table table-sm table-hover w-100" style="font-size:.8rem;margin:0">
+      <thead><tr><th>Action</th><th>qso_id</th><th>QSO (call · date · time · band)</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    ${note}</div>`;
+}
+
 async function doUpload() {
   const tokens = requireTokens();
   if (!tokens) return;
@@ -1124,7 +1189,7 @@ async function doUpload() {
     const body = await res.json().catch(async () => ({message: await res.clone().text().catch(() => res.statusText)}));
     const resultEl = document.getElementById("upload-result");
     if (res.ok) {
-      resultEl.innerHTML = `<div class="result-panel"><div class="result-toolbar"><span class="result-label">Upload Response</span><span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)">HTTP ${res.status}</span></div><div class="result-success"><i class="bi bi-check-circle me-2"></i>${escHtml(body.message||"QSOs processed successfully")}</div></div>`;
+      resultEl.innerHTML = renderUploadResult(res, body);
       resultEl.classList.remove("d-none"); toast("QSO uploaded!", "success");
       if (currentUploadTab === "json") resetUploadForm();
     } else {
@@ -1299,14 +1364,14 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
     return;
   }
 
-  const PRIORITY = ["CALL","QSO_DATE","TIME_ON","MODE","BAND","FREQ","RST_SENT","RST_RCVD","GRIDSQUARE","COUNTRY","COMMENT"];
+  const PRIORITY = ["QSO_ID","CALL","QSO_DATE","TIME_ON","MODE","BAND","FREQ","RST_SENT","RST_RCVD","GRIDSQUARE","COUNTRY","COMMENT"];
   const keyMap = new Map();
   qsos.forEach(q => Object.keys(q).forEach(k => { const u = k.toUpperCase(); if (!keyMap.has(u)) keyMap.set(u, k); }));
   const priorityPresent = PRIORITY.filter(k => keyMap.has(k));
   const rest = [...keyMap.keys()].filter(k => !PRIORITY.includes(k)).sort();
   const allCols = [...priorityPresent, ...rest];
 
-  const prettyLabel = k => k
+  const prettyLabel = k => k === "QSO_ID" ? "qso_id" : k
     .replace(/_/g," ")
     .replace(/\bQSO\b/gi,"QSO").replace(/\bRST\b/gi,"RST").replace(/\bDXCC\b/gi,"DXCC")
     .replace(/\bITUZ\b/gi,"ITUZ").replace(/\bCQZ\b/gi,"CQZ").replace(/\bIOTA\b/gi,"IOTA")
@@ -1326,6 +1391,8 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
       return `<span style="color:var(--text-3)">—</span>`;
     const v = String(val);
     switch(key) {
+      case "QSO_ID":
+        return `<span style="font-family:var(--mono);font-size:.72rem;color:var(--teal-dark)" title="${escHtml(v)}">${escHtml(v)}</span>`;
       case "CALL":
         return `<strong style="color:var(--teal-dark);font-family:var(--mono)">${escHtml(v)}</strong>`;
       case "QSO_DATE":
@@ -1380,6 +1447,11 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
       All pages loaded — ${qsos.length.toLocaleString()} QSO${qsos.length!==1?"s":""} total.
     </div>`;
 
+  const idNote = keyMap.has("QSO_ID") ? `
+      <div style="padding:.4rem 1rem;font-size:.7rem;color:var(--text-3);border-bottom:1px solid var(--border)">
+        <i class="bi bi-fingerprint me-1"></i><strong>qso_id</strong> is the stable, immutable handle for each record — store it to reference or update a QSO later (survives edits to call/date/time/band).
+      </div>` : "";
+
   container.innerHTML = `
     <div class="result-panel">
       <div class="result-toolbar">
@@ -1388,6 +1460,7 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
         </span>
         <span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)">HTTP ${status}</span>
       </div>
+      ${idNote}
       <div style="padding:.75rem 1rem 0">
         <table id="qso-datatable" class="table table-sm table-hover w-100" style="font-size:.82rem">
           <thead><tr>${thead}</tr></thead>
