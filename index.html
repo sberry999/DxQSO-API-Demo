@@ -85,6 +85,7 @@
     .nav-logo { text-decoration: none; display: flex; align-items: center; }
     .nav-logo-img { height: 36px; width: auto; filter: brightness(0) invert(1); display: block; }
     .hero-logo-img { height: 56px; width: auto; filter: brightness(0) invert(1); display: block; }
+    .footer-logo { display: inline-block; line-height: 0; }
     .footer-logo-img { height: 32px; width: auto; filter: brightness(0) invert(1); display: block; }
     .nav-badge { font-size: .72rem; font-family: var(--mono); color: rgba(255,255,255,.75); background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); padding: .2rem .65rem; border-radius: 999px; letter-spacing: .05em; }
     .btn-docs { font-size: .82rem; color: rgba(255,255,255,.85); text-decoration: none; border: 1px solid rgba(255,255,255,.3); padding: .35rem .85rem; border-radius: var(--radius-sm); transition: all var(--transition); font-family: var(--mono); background: rgba(255,255,255,.08); }
@@ -383,7 +384,7 @@
 <nav class="site-nav">
   <div class="container">
     <div class="d-flex align-items-center gap-3">
-      <a href="#" class="nav-logo">
+      <a href="https://dxqso.org" class="nav-logo" aria-label="DxQSO — dxqso.org">
         <img src="/assets/dxqso-logo.png" alt="DxQSO" class="nav-logo-img" />
       </a>
       <span class="nav-badge">API Demo v1.0</span>
@@ -898,7 +899,9 @@ curl -s "https://api.dxqso.net/logbook/download?format=adif" \
   <div class="container">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
       <div>
-        <img src="/assets/dxqso-logo.png" alt="DxQSO" class="footer-logo-img" />
+        <a href="https://dxqso.org" class="footer-logo" aria-label="DxQSO — dxqso.org">
+          <img src="/assets/dxqso-logo.png" alt="DxQSO" class="footer-logo-img" />
+        </a>
         <div style="font-size:.82rem;color:rgba(255,255,255,.8);margin-top:.35rem">Cloud QSO Repository API Demo</div>
       </div>
       <div class="d-flex gap-3">
