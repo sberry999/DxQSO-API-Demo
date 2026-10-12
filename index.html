@@ -932,10 +932,10 @@ let _accumulatedQsos  = [];   // all QSOs loaded across pages
 let _pendingNextToken = null; // the X-Next-Token from the last successful response
 let _pagesFetched     = 0;   // how many pages have been fetched so far
 
-// The API returns this many QSOs per page. If a page returns fewer than this,
-// it IS the last page — regardless of whether X-Next-Token is present.
-// (The API sends a stale/leftover token even on the final page.)
-const API_PAGE_SIZE = 1000;
+// Paging: follow X-Next-Token until the API stops sending one. Do NOT infer the
+// last page from the record count — the API caps the time spent on each page, so
+// a page can be short, or even empty, with more to come (e.g. an account key
+// limited to a callsign that is rare in the log).
 
 document.addEventListener("DOMContentLoaded", () => {
   loadKeys();
@@ -1368,14 +1368,11 @@ async function doDownload(isNextPage) {
       // Append new QSOs to the accumulated array
       _accumulatedQsos = _accumulatedQsos.concat(pageQsos);
 
-      // ── DEFINITIVE last-page detection ───────────────────────────
-      // The API sends X-Next-Token even on the final page, so we cannot
-      // rely on the token alone. A page with fewer QSOs than the page size
-      // (or zero QSOs) is always the last page.
-      const isLastPage = (pageQsos.length === 0 || pageQsos.length < API_PAGE_SIZE);
+      // ── Last-page detection: no next token = no more pages ────────
+      const isLastPage = !returnedNext && !body.has_more;
 
       // Only store the next-token if this was NOT the last page
-      _pendingNextToken = isLastPage ? null : (returnedNext || null);
+      _pendingNextToken = isLastPage ? null : (returnedNext || body.next_token || null);
 
       // Update the hidden field (used internally)
       document.getElementById("dl-next-token").value = _pendingNextToken || "";
@@ -1383,6 +1380,13 @@ async function doDownload(isNextPage) {
       // Show/hide the "Reset & Start Over" button
       document.getElementById("reset-pages-btn").style.display =
         (_accumulatedQsos.length > 0) ? "inline-flex" : "none";
+
+      // Nothing yet but more to come (a short/empty page from a narrow filter):
+      // keep going rather than reporting "No QSOs".
+      if (_accumulatedQsos.length === 0 && _pendingNextToken) {
+        setTimeout(() => doDownload(true), 0);
+        return;
+      }
 
       const resultEl = document.getElementById("download-result");
       // Pass null (not empty string) so renderQSOTable boolean check is unambiguous
