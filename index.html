@@ -1030,7 +1030,6 @@ function renderAccountResult(d) {
   const scopeBadge = d.scope === "account_write"
     ? `<span class="status-badge status-green"><i class="bi bi-pencil-square me-1"></i>Read + Write</span>`
     : `<span class="status-badge status-grey"><i class="bi bi-eye me-1"></i>Read only</span>`;
-  const callsigns = Array.isArray(d.callsigns) && d.callsigns.length ? d.callsigns.join(", ") : "All callsigns";
 
   const stationBlock = s => `
       <div class="station-section-label">${escHtml(s.station_name || "Station")}${s.default_station ? ` <span class="status-badge status-green ms-1"><i class="bi bi-star-fill me-1"></i>Default</span>` : ""}</div>
@@ -1056,7 +1055,6 @@ function renderAccountResult(d) {
       <div class="station-section-label">Account</div>
       <div class="station-grid">
         ${field("Key Type",  "Account (all Stations)", "key")}
-        ${field("Callsigns", callsigns, "person-badge")}
         ${field("Stations",  stations.length.toLocaleString(), "broadcast-pin")}
         ${d.account_number_of_qsos !== null && d.account_number_of_qsos !== undefined ? field("Account QSOs", d.account_number_of_qsos.toLocaleString(), "journal-text") : ""}
       </div>
