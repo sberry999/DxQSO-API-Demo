@@ -1283,6 +1283,7 @@ function resetAccumulation() {
   _pendingNextToken = null;
   _pagesFetched     = 0;
   window._lastQsos  = [];
+  window._qsoCols   = null;
   document.getElementById("dl-next-token").value = "";
   document.getElementById("download-result").classList.add("d-none");
   document.getElementById("reset-pages-btn").style.display = "none";
@@ -1338,6 +1339,7 @@ async function doDownload(isNextPage) {
 
   showSpinner();
   setButtonLoading("download-btn", true);
+  const tRequest = performance.now();
 
   $.ajax({
     url: `${API_BASE}/logbook/download?${params}`,
@@ -1387,8 +1389,15 @@ async function doDownload(isNextPage) {
       }
 
       const resultEl = document.getElementById("download-result");
+      const requestMs = performance.now() - tRequest;
+      const tTable = performance.now();
       // Pass null (not empty string) so renderQSOTable boolean check is unambiguous
-      renderQSOTable(resultEl, _accumulatedQsos, 200, _pendingNextToken, pageQsos.length, _pagesFetched);
+      renderQSOTable(resultEl, _accumulatedQsos, 200, _pendingNextToken, pageQsos.length, _pagesFetched, pageQsos);
+      // Where the time went, shown in the result bar: the request (network + API) and
+      // building the table in this page.
+      const timingEl = document.getElementById("qso-timing");
+      if (timingEl) timingEl.textContent =
+        `Request ${(requestMs / 1000).toFixed(1)} s · Table ${((performance.now() - tTable) / 1000).toFixed(1)} s · `;
 
       toast(
         `Page ${_pagesFetched}: +${pageQsos.length} QSO${pageQsos.length!==1?"s":""} · ${_accumulatedQsos.length.toLocaleString()} total`,
@@ -1411,13 +1420,56 @@ async function doDownload(isNextPage) {
 }
 
 // ── FIX: renderQSOTable — now shows total+page counts + inline next-page button ──
-function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetched) {
+// Builds the QSO table. Speed (2026-10-12): the table holds the RAW values and draws only
+// the rows on screen (deferRender), so 1,000 QSOs x ~100 columns no longer become 100,000
+// DOM cells up front; and "Load next page" APPENDS the new page (newQsos) instead of
+// rebuilding everything loaded so far. It rebuilds only when a page brings a new column.
+function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetched, newQsos) {
   window._lastQsos = qsos;
+
+  const PRIORITY = ["QSO_ID","CALL","QSO_DATE","TIME_ON","MODE","BAND","FREQ","RST_SENT","RST_RCVD","GRIDSQUARE","COUNTRY","COMMENT"];
+  const upperRow = q => { const m = {}; for (const k in q) { const u = k.toUpperCase(); if (!(u in m)) m[u] = q[k]; } return m; };
+  const rowOf = (q, cols) => { const m = upperRow(q); return cols.map(c => (m[c] === undefined ? "" : m[c])); };
+
+  const hasMorePages = !!(nextToken && nextToken.trim());
+  const pageLabelHtml = (n, ncols) => (pagesFetched && pageCount !== undefined)
+    ? `${n.toLocaleString()} QSO${n!==1?"s":""}&nbsp;·&nbsp;${ncols} cols&nbsp;·&nbsp;<span style="color:var(--amber)">page ${pagesFetched} (+${pageCount} new)</span>`
+    : `${n.toLocaleString()} QSO${n!==1?"s":""}&nbsp;·&nbsp;${ncols} cols`;
+  const nextPageBarHtml = n => hasMorePages ? `
+    <div class="next-page-bar">
+      <i class="bi bi-arrow-right-circle"></i>
+      <span>More pages available — ${n.toLocaleString()} loaded so far.</span>
+      <button class="btn-load-next" id="btn-load-next-inline" onclick="doDownload(true)">
+        <i class="bi bi-cloud-download"></i> Load Next Page
+      </button>
+      <button class="btn-reset-pages" onclick="resetAccumulation()">
+        <i class="bi bi-x"></i> Reset
+      </button>
+    </div>` : `
+    <div style="padding:.5rem 1rem;background:var(--green-bg);border-top:1px solid var(--green-border);font-family:var(--mono);font-size:.75rem;color:var(--green);display:flex;align-items:center;gap:.5rem">
+      <i class="bi bi-check-circle"></i>
+      All pages loaded — ${n.toLocaleString()} QSO${n!==1?"s":""} total.
+    </div>`;
+
+  // ── Append path: the table exists and this page brings no new column ──
+  const cols0 = window._qsoCols;
+  if (newQsos && newQsos.length && newQsos.length < qsos.length && cols0
+      && $.fn.DataTable.isDataTable("#qso-datatable")) {
+    const known = new Set(cols0);
+    const fits = newQsos.every(q => Object.keys(q).every(k => known.has(k.toUpperCase())));
+    if (fits) {
+      $("#qso-datatable").DataTable().rows.add(newQsos.map(q => rowOf(q, cols0))).draw(false);
+      document.getElementById("qso-page-label").innerHTML = pageLabelHtml(qsos.length, cols0.length);
+      document.getElementById("qso-next-bar").innerHTML = nextPageBarHtml(qsos.length);
+      return;
+    }
+  }
 
   if ($.fn.DataTable.isDataTable("#qso-datatable")) {
     $("#qso-datatable").DataTable().destroy();
     $("#qso-datatable").empty();
   }
+  window._qsoCols = null;
 
   if (qsos.length === 0) {
     container.innerHTML = `
@@ -1435,12 +1487,12 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
     return;
   }
 
-  const PRIORITY = ["QSO_ID","CALL","QSO_DATE","TIME_ON","MODE","BAND","FREQ","RST_SENT","RST_RCVD","GRIDSQUARE","COUNTRY","COMMENT"];
-  const keyMap = new Map();
-  qsos.forEach(q => Object.keys(q).forEach(k => { const u = k.toUpperCase(); if (!keyMap.has(u)) keyMap.set(u, k); }));
-  const priorityPresent = PRIORITY.filter(k => keyMap.has(k));
-  const rest = [...keyMap.keys()].filter(k => !PRIORITY.includes(k)).sort();
+  const keySet = new Set();
+  qsos.forEach(q => Object.keys(q).forEach(k => keySet.add(k.toUpperCase())));
+  const priorityPresent = PRIORITY.filter(k => keySet.has(k));
+  const rest = [...keySet].filter(k => !PRIORITY.includes(k)).sort();
   const allCols = [...priorityPresent, ...rest];
+  window._qsoCols = allCols;
 
   const prettyLabel = k => k === "QSO_ID" ? "qso_id" : k
     .replace(/_/g," ")
@@ -1449,13 +1501,6 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
     .replace(/\bLOTW\b/gi,"LoTW").replace(/\bQSL\b/gi,"QSL")
     .replace(/\bAPP\b/gi,"App").replace(/\bDXQSO\b/gi,"DxQSO")
     .toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-
-  const getVal = (q, uKey) => {
-    const orig = keyMap.get(uKey);
-    if (orig && q[orig] !== undefined) return q[orig];
-    if (q[uKey] !== undefined) return q[uKey];
-    return "";
-  };
 
   const fmtCell = (key, val) => {
     if (val === null || val === undefined || val === "")
@@ -1488,37 +1533,7 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
     }
   };
 
-  const thead = allCols.map(k => `<th title="${escHtml(k)}">${escHtml(prettyLabel(k))}</th>`).join("");
-  const tbody = qsos.map(q => {
-    const cells = allCols.map(k => `<td>${fmtCell(k, getVal(q, k))}</td>`).join("");
-    return `<tr>${cells}</tr>`;
-  }).join("");
-
-  // ── FIX: page-counter label ──────────────────────────────────────
-  const pageLabel = (pagesFetched && pageCount !== undefined)
-    ? `${qsos.length.toLocaleString()} QSO${qsos.length!==1?"s":""}&nbsp;·&nbsp;${allCols.length} cols&nbsp;·&nbsp;<span style="color:var(--amber)">page ${pagesFetched}${pageCount !== undefined ? ` (+${pageCount} new)` : ""}</span>`
-    : `${qsos.length.toLocaleString()} QSO${qsos.length!==1?"s":""}&nbsp;·&nbsp;${allCols.length} cols`;
-
-  // ── FIX: next-page bar rendered INSIDE the panel ─────────────────
-  // nextToken is already normalized to null when no more pages exist
-  const hasMorePages = !!(nextToken && nextToken.trim());
-  const nextPageBar = hasMorePages ? `
-    <div class="next-page-bar">
-      <i class="bi bi-arrow-right-circle"></i>
-      <span>More pages available — ${qsos.length.toLocaleString()} loaded so far.</span>
-      <button class="btn-load-next" id="btn-load-next-inline" onclick="doDownload(true)">
-        <i class="bi bi-cloud-download"></i> Load Next Page
-      </button>
-      <button class="btn-reset-pages" onclick="resetAccumulation()">
-        <i class="bi bi-x"></i> Reset
-      </button>
-    </div>` : `
-    <div style="padding:.5rem 1rem;background:var(--green-bg);border-top:1px solid var(--green-border);font-family:var(--mono);font-size:.75rem;color:var(--green);display:flex;align-items:center;gap:.5rem">
-      <i class="bi bi-check-circle"></i>
-      All pages loaded — ${qsos.length.toLocaleString()} QSO${qsos.length!==1?"s":""} total.
-    </div>`;
-
-  const idNote = keyMap.has("QSO_ID") ? `
+  const idNote = keySet.has("QSO_ID") ? `
       <div style="padding:.4rem 1rem;font-size:.7rem;color:var(--text-3);border-bottom:1px solid var(--border)">
         <i class="bi bi-fingerprint me-1"></i><strong>qso_id</strong> is the stable, immutable handle for each record — store it to reference or update a QSO later (survives edits to call/date/time/band).
       </div>` : "";
@@ -1527,24 +1542,30 @@ function renderQSOTable(container, qsos, status, nextToken, pageCount, pagesFetc
     <div class="result-panel">
       <div class="result-toolbar">
         <span class="result-label">
-          <i class="bi bi-table me-1"></i>${pageLabel}
+          <i class="bi bi-table me-1"></i><span id="qso-page-label">${pageLabelHtml(qsos.length, allCols.length)}</span>
         </span>
-        <span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)">HTTP ${status}</span>
+        <span style="font-family:var(--mono);font-size:.72rem;color:var(--teal)"><span id="qso-timing"></span>HTTP ${status}</span>
       </div>
       ${idNote}
       <div style="padding:.75rem 1rem 0">
-        <table id="qso-datatable" class="table table-sm table-hover w-100" style="font-size:.82rem">
-          <thead><tr>${thead}</tr></thead>
-          <tbody>${tbody}</tbody>
-        </table>
+        <table id="qso-datatable" class="table table-sm table-hover w-100" style="font-size:.82rem"></table>
       </div>
-      ${nextPageBar}
+      <div id="qso-next-bar">${nextPageBarHtml(qsos.length)}</div>
     </div>`;
   container.classList.remove("d-none");
 
   const dateColIdx = allCols.indexOf("QSO_DATE");
 
   $("#qso-datatable").DataTable({
+    data: qsos.map(q => rowOf(q, allCols)),
+    deferRender: true,
+    columns: allCols.map(k => ({
+      // Raw field name as the tooltip, inside the title so it survives scrollX's header
+      // copy; the export buttons strip the HTML.
+      title: `<span title="${escHtml(k)}">${escHtml(prettyLabel(k))}</span>`,
+      // Raw values for sort/search/export; the formatted cell only for what is on screen.
+      render: (d, type) => type === "display" ? fmtCell(k, d) : (d === null || d === undefined ? "" : d),
+    })),
     pageLength: 25,
     scrollX: true,
     scrollCollapse: true,
