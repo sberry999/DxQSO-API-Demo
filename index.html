@@ -466,7 +466,7 @@
             <div class="form-hint">Header: <code style="color:var(--teal-dark);font-size:.72rem;background:var(--teal-pale);padding:.1rem .3rem;border-radius:3px">Authorization: Bearer &lt;vendor_token&gt;</code></div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Station Token <span class="required">*</span><div class="form-hint">User generates at <a href="https://dxqso.net/lotw/stations/" target="_blank">dxqso.net → Stations</a></div></label>
+            <label class="form-label">Station Token or Account API Key <span class="required">*</span><div class="form-hint">User generates at <a href="https://dxqso.net/lotw/stations/" target="_blank">dxqso.net → Stations</a></div></label>
             <div class="input-group">
               <input type="password" id="station-token" class="form-control form-control-sm is-token" placeholder="Bearer eyJ..." autocomplete="off" />
               <button class="btn-eye" id="eye-station" onclick="toggleField('station-token','eye-station')"><i class="bi bi-eye"></i></button>
@@ -482,7 +482,7 @@
         <div class="key-info">
           <strong>Authentication model:</strong> Every API request requires <em>two</em> Bearer tokens.<br>
           <code>Authorization: Bearer &lt;vendor_token&gt;</code> — identifies your application (one per vendor, long-lived)<br>
-          <code>dxqso-station-token: Bearer &lt;station_token&gt;</code> — identifies the end-user's station (JWT, generated per user)
+          <code>dxqso-station-token: Bearer &lt;station_token&gt;</code> — identifies the end-user: either a <em>Station token</em> (one Station) or an <em>account API key</em> (all of the user's Stations; read-only or read + write). Both are generated at dxqso.net → Stations.
         </div>
       </section>
 
@@ -1004,8 +1004,69 @@ function authHeaders(vt, st, extra = {}) {
   return { "Authorization": `Bearer ${vt}`, "dxqso-station-token": `Bearer ${st}`, ...extra };
 }
 
-// ── Station Info (unchanged) ─────────────────────────────────────────
+// ── Station Info ─────────────────────────────────────────────────────
+// An account API key (token_type "account") has no Station of its own, so
+// station_info answers with every Station the key covers instead of one.
+const isAccountKey = d => d && d.token_type === "account";
+
+function renderAccountResult(d) {
+  const resultEl = document.getElementById("station-result");
+  const stations = Array.isArray(d.stations) ? d.stations : [];
+  const field = (label, val, icon = "") => {
+    if (val === null || val === undefined || val === "") return "";
+    return `<div class="station-field"><div class="station-field-label">${icon ? `<i class="bi bi-${icon} me-1"></i>` : ""}${label}</div><div class="station-field-value">${escHtml(String(val))}</div></div>`;
+  };
+  const dateFmt = iso => {
+    if (!iso) return null;
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }); }
+    catch (e) { return iso; }
+  };
+  const cachedAt = (() => {
+    try { return JSON.parse(localStorage.getItem("dxqso_station_data") || "{}")._cached_at; }
+    catch (e) { return null; }
+  })();
+  const cacheNotice = cachedAt
+    ? `<span style="font-family:var(--mono);font-size:.68rem;color:var(--text-3)"><i class="bi bi-clock-history me-1"></i>cached ${new Date(cachedAt).toLocaleString()}</span>` : "";
+  const scopeBadge = d.scope === "account_write"
+    ? `<span class="status-badge status-green"><i class="bi bi-pencil-square me-1"></i>Read + Write</span>`
+    : `<span class="status-badge status-grey"><i class="bi bi-eye me-1"></i>Read only</span>`;
+  const callsigns = Array.isArray(d.callsigns) && d.callsigns.length ? d.callsigns.join(", ") : "All callsigns";
+
+  const stationBlock = s => `
+      <div class="station-section-label">${escHtml(s.station_name || "Station")}${s.default_station ? ` <span class="status-badge status-green ms-1"><i class="bi bi-star-fill me-1"></i>Default</span>` : ""}</div>
+      <div class="station-grid">
+        ${field("Callsign",     s.call_sign,    "person-badge")}
+        ${field("Grid Square",  s.gridsquare,   "grid")}
+        ${field("DXCC",         s.dxcc,         "flag")}
+        ${field("ITU Zone",     s.ituz,         "globe")}
+        ${field("CQ Zone",      s.cqz,          "globe2")}
+        ${field("State",        s.us_state,     "geo-alt")}
+        ${field("County",       s.us_county,    "geo")}
+        ${field("Station Type", s.station_type, "broadcast")}
+        ${field("LoTW Cert",    s.is_lotw_station ? "Yes" : "No", "patch-check")}
+        ${field("Last Modified Date", dateFmt(s.last_modified), "clock")}
+      </div>`;
+
+  resultEl.innerHTML = `
+    <div class="result-panel">
+      <div class="result-toolbar">
+        <span class="result-label"><i class="bi bi-key me-1"></i>Account API key</span>
+        <div class="d-flex align-items-center gap-2 flex-wrap">${cacheNotice}${scopeBadge}</div>
+      </div>
+      <div class="station-section-label">Account</div>
+      <div class="station-grid">
+        ${field("Key Type",  "Account (all Stations)", "key")}
+        ${field("Callsigns", callsigns, "person-badge")}
+        ${field("Stations",  stations.length.toLocaleString(), "broadcast-pin")}
+        ${d.account_number_of_qsos !== null && d.account_number_of_qsos !== undefined ? field("Account QSOs", d.account_number_of_qsos.toLocaleString(), "journal-text") : ""}
+      </div>
+      ${stations.length ? stations.map(stationBlock).join("") : `<div class="result-success"><i class="bi bi-info-circle me-2"></i>No active Stations match this key.</div>`}
+    </div>`;
+  resultEl.classList.remove("d-none");
+}
+
 function renderStationResult(d) {
+  if (isAccountKey(d)) return renderAccountResult(d);
   const resultEl = document.getElementById("station-result");
   const field = (label, val, icon = "") => {
     if (val === null || val === undefined || val === "") return "";
@@ -1050,7 +1111,7 @@ function renderStationResult(d) {
         ${field("County",       d.us_county,    "geo")}
         ${field("Station Type", d.station_type, "broadcast")}
         ${field("Event",        d.event,        "calendar-event")}
-        ${d.number_of_qsos !== undefined ? field("Station QSOs", d.number_of_qsos.toLocaleString(), "journal-text") : ""}
+        ${d.number_of_qsos !== null && d.number_of_qsos !== undefined ? field("Station QSOs", d.number_of_qsos.toLocaleString(), "journal-text") : ""}
         ${field("Last Modified Date", dateFmt(d.last_modified), "clock")}
       </div>
       <div class="station-section-label">LoTW — Logbook of the World</div>
@@ -1088,7 +1149,12 @@ async function doStationInfo() {
       d._cached_at = new Date().toISOString();
       localStorage.setItem("dxqso_station_data", JSON.stringify(d));
       renderStationResult(d);
-      toast(`Station: ${d.station_name || d.call_sign}`, "success");
+      if (isAccountKey(d)) {
+        const n = Array.isArray(d.stations) ? d.stations.length : 0;
+        toast(`Account key: ${n} Station${n !== 1 ? "s" : ""}`, "success");
+      } else {
+        toast(`Station: ${d.station_name || d.call_sign || "(unnamed)"}`, "success");
+      }
     },
     error: function(xhr) {
       const body = xhr.responseJSON || {};
